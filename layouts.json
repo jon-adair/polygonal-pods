@@ -1,0 +1,60 @@
+{
+  "test1": [
+    {
+      "name": "WCS",
+      "dirty": 1,
+      "packedsize": {
+        "width": 1,
+        "height": 1,
+        "depth": 1
+      },
+      "deployedsize": {
+        "width": 75,
+        "height": 75,
+        "depth": 75
+      },
+      "color": "#ff7723",
+      "x": 0.9721374000518943,
+      "y": 0.5,
+      "z": -0.0788408920225887
+    },
+    {
+      "name": "berth",
+      "dirty": 0.3,
+      "color": "#4488ff",
+      "packedsize": {
+        "width": 0.7,
+        "height": 0.7,
+        "depth": 0.7
+      },
+      "deployedsize": {
+        "width": 75,
+        "height": 75,
+        "depth": 75
+      },
+      "x": -1.0419554183356645,
+      "y": 0.35,
+      "z": 2.6124746821085
+    }
+  ],
+  "test3": [
+    {
+      "x": -2,
+      "y": 0.5,
+      "z": -2,
+      "color": "#ff5555"
+    },
+    {
+      "x": 0,
+      "y": 0.35,
+      "z": 1,
+      "color": "#55ff55"
+    },
+    {
+      "x": 1.197301806155234,
+      "y": 0.35,
+      "z": 3.5,
+      "color": "#4488ff"
+    }
+  ]
+}
