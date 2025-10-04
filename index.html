@@ -114,7 +114,23 @@ function updateInfoPanel() {
     berthVal.style.fontWeight = 'bold';
   }
   if (wcs && berth) {
-    const dist = wcs.position.distanceTo(berth.position);
+    // Compute center point of each pie segment
+    function getPieCenter(shape) {
+      if (shape.type === 'PieSegment') {
+        const angle = (shape.userData.startAngle + shape.userData.endAngle) / 2;
+        const radius = (shape.userData.centerRadius + shape.userData.floorRadius) / 2;
+        return new THREE.Vector3(
+          radius * Math.cos(angle),
+          0,
+          radius * Math.sin(angle)
+        );
+      } else {
+        return shape.position;
+      }
+    }
+    const wcsCenter = getPieCenter(wcs);
+    const berthCenter = getPieCenter(berth);
+    const dist = wcsCenter.distanceTo(berthCenter);
     sepVal.textContent = dist.toFixed(2);
     if (dist < 2.5) {
       sepVal.style.color = '#c00';
@@ -293,7 +309,7 @@ function isColliding(a, b, newPosA = null) {
           box = ba; boxCenter = ca; boxSize = ba.size;
           sphere = bb; sphereCenter = cb; sphereRadius = bb.radius;
         } else {
-          box = bb; boxCenter = cb; boxSize = bb.size;
+          box = bb; boxCenter = cb; boxSize = ba.size;
           sphere = ba; sphereCenter = ca; sphereRadius = ba.radius;
         }
         // Clamp sphere center to box
@@ -400,6 +416,19 @@ renderer.domElement.addEventListener('pointerdown', (event) => {
         selectedEdges.position.copy(clickedShape.position);
         scene.add(selectedEdges);
       }
+      // For pie segments, store initial drag angle
+      if (clickedShape.type === 'PieSegment') {
+        // Compute initial angle from mouse position
+        const rect = renderer.domElement.getBoundingClientRect();
+        const mx = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        const my = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+        // Project mouse to world coordinates
+        const vector = new THREE.Vector3(mx, my, 0.5).unproject(camera);
+        const dragAngle = Math.atan2(vector.z, vector.x);
+        clickedShape.userData.dragStartAngle = dragAngle;
+        clickedShape.userData.dragOrigStartAngle = clickedShape.userData.startAngle;
+        clickedShape.userData.dragOrigEndAngle = clickedShape.userData.endAngle;
+      }
     }
     // Find intersection point with floor for drag
     raycaster.setFromCamera(mouse, camera);
@@ -421,29 +450,83 @@ renderer.domElement.addEventListener('pointerdown', (event) => {
 
 renderer.domElement.addEventListener('pointermove', (event) => {
     if (!selectedShape || !isDragging) return;
-    raycaster.setFromCamera(mouse, camera);
-    const rect = renderer.domElement.getBoundingClientRect();
-    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-    const floorIntersect = raycaster.intersectObject(floor);
-    if (floorIntersect.length > 0) {
-        let newPos = floorIntersect[0].point.clone().add(offset);
-        // Clamp to floor bounds
-        newPos.x = Math.max(-3.5, Math.min(3.5, newPos.x));
-        newPos.z = Math.max(-3.5, Math.min(3.5, newPos.z));
-        newPos.y = selectedY;
-        // Check collision with other shapes
-        let collision = false;
-        for (const other of shapes) {
-            if (other !== selectedShape && isColliding(selectedShape, other, newPos)) {
-                collision = true;
-                break;
-            }
+    if (selectedShape.type === 'PieSegment') {
+      // Rotate pie segment around center based on mouse movement
+      const rect = renderer.domElement.getBoundingClientRect();
+      const mx = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      const my = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      // Project mouse to world coordinates
+      const vector = new THREE.Vector3(mx, my, 0.5).unproject(camera);
+  const dragAngle = Math.atan2(vector.z, vector.x);
+  const deltaAngle = (dragAngle - selectedShape.userData.dragStartAngle) * 10;
+      // Update start/end angles
+      let newStart = selectedShape.userData.dragOrigStartAngle + deltaAngle;
+      let newEnd = selectedShape.userData.dragOrigEndAngle + deltaAngle;
+      // Clamp angles to [0, 2PI]
+      newStart = ((newStart % (2*Math.PI)) + 2*Math.PI) % (2*Math.PI);
+      newEnd = ((newEnd % (2*Math.PI)) + 2*Math.PI) % (2*Math.PI);
+      // Check for overlap with other pie segments
+      let collision = false;
+      for (const other of shapes) {
+        if (other !== selectedShape && other.type === 'PieSegment') {
+          const a0 = other.userData.startAngle;
+          const a1 = other.userData.endAngle;
+          const overlap =
+            (newStart < a1 && newEnd > a0) ||
+            (a0 < newEnd && a1 > newStart);
+          if (overlap) {
+            collision = true;
+            break;
+          }
         }
-        if (!collision) {
-            selectedShape.position.copy(newPos);
-            if (selectedEdges) selectedEdges.position.copy(newPos);
-        }
+      }
+      if (!collision) {
+        // Remove old geometry
+        selectedShape.geometry.dispose();
+        // Recreate pie segment geometry
+        const centerRadius = selectedShape.userData.centerRadius;
+        const floorRadius = selectedShape.userData.floorRadius;
+        const pieShape = new THREE.Shape();
+        pieShape.moveTo(centerRadius * Math.cos(newStart), centerRadius * Math.sin(newStart));
+        pieShape.absarc(0, 0, centerRadius, newStart, newEnd, false);
+        pieShape.lineTo(floorRadius * Math.cos(newEnd), floorRadius * Math.sin(newEnd));
+        pieShape.absarc(0, 0, floorRadius, newEnd, newStart, true);
+        pieShape.lineTo(centerRadius * Math.cos(newStart), centerRadius * Math.sin(newStart));
+        const pieHeight = selectedShape.moduleData?.packedsize?.height || 1;
+        const extrudeSettings = { depth: pieHeight, bevelEnabled: false, steps: 1 };
+        const geometry = new THREE.ExtrudeGeometry(pieShape, extrudeSettings);
+        geometry.rotateX(-Math.PI/2);
+        geometry.translate(0, 0, 0);
+        selectedShape.geometry = geometry;
+        selectedShape.userData.startAngle = newStart;
+        selectedShape.userData.endAngle = newEnd;
+      }
+    } else {
+      // ...existing code for cubes...
+      raycaster.setFromCamera(mouse, camera);
+      const rect = renderer.domElement.getBoundingClientRect();
+      mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      const floorIntersect = raycaster.intersectObject(floor);
+      if (floorIntersect.length > 0) {
+          let newPos = floorIntersect[0].point.clone().add(offset);
+          // Clamp to floor bounds
+          newPos.x = Math.max(-3.5, Math.min(3.5, newPos.x));
+          newPos.z = Math.max(-3.5, Math.min(3.5, newPos.z));
+          newPos.y = selectedY;
+          // Check collision with other shapes
+          let collision = false;
+          for (const other of shapes) {
+              if (other !== selectedShape && isColliding(selectedShape, other, newPos)) {
+                  collision = true;
+                  break;
+              }
+          }
+          if (!collision) {
+              selectedShape.position.copy(newPos);
+              if (selectedEdges) selectedEdges.position.copy(newPos);
+          }
+      }
     }
 });
 
@@ -624,38 +707,62 @@ document.getElementById('addModuleBtn').onclick = () => {
         btn.onclick = () => {
           console.log('Selected module:', mod);
           moduleSelect.style.display = 'none';
-          // Use packedsize and color
-          const w = (mod.packedsize?.width);
-          const h = (mod.packedsize?.height);
-          const d = (mod.packedsize?.depth);
-          console.log(w,h,d);
+          // Use packedsize width for pie slice angular width
           const color = mod.color || '#888888';
-          const cube = new THREE.Mesh(
-            new THREE.BoxGeometry(w, h, d),
-            new THREE.MeshLambertMaterial({ color, transparent: true, opacity: 0.8 })
-          );
-          cube.moduleData = { ...mod };
+          const floorRadius = 4;
+          const centerRadius = 0.6; // match center cylinder
+          const sliceWidth = mod.packedsize?.width || 1;
+          // Calculate angular width: proportional to sliceWidth
+          const totalCircumference = 2 * Math.PI * ((centerRadius + floorRadius) / 2);
+          const angularWidth = Math.max(0.2, sliceWidth / totalCircumference * 2 * Math.PI); // min 0.2 rad
+          // Find next available angle (avoid overlap)
+          let startAngle = 0;
+          let maxTries = 50;
           let placed = false;
           let attempts = 0;
-          while (!placed && attempts < 50) {
-            const x = Math.random() * (7 - w) - (3.5 - w/2);
-            const z = Math.random() * (7 - d) - (3.5 - d/2);
-            const y = h / 2;
-            cube.position.set(x, y, z);
-            console.log(`Trying position: ${x.toFixed(2)}, ${y.toFixed(2)}, ${z.toFixed(2)}`);
+          while (!placed && attempts < maxTries) {
+            // Try random angle
+            startAngle = Math.random() * 2 * Math.PI;
+            // Check for overlap with existing pie segments
             let collision = false;
             for (const other of shapes) {
-              if (isColliding(cube, other)) {
-                collision = true;
-                break;
+              if (other.type === 'PieSegment') {
+                // Check angular overlap
+                const a0 = other.userData.startAngle;
+                const a1 = other.userData.endAngle;
+                const overlap =
+                  (startAngle < a1 && (startAngle + angularWidth) > a0) ||
+                  (a0 < (startAngle + angularWidth) && a1 > startAngle);
+                if (overlap) {
+                  collision = true;
+                  break;
+                }
               }
             }
             if (!collision) placed = true;
             attempts++;
           }
           if (placed) {
-            shapes.push(cube);
-            scene.add(cube);
+            // Create pie segment geometry
+            const endAngle = startAngle + angularWidth;
+            const pieShape = new THREE.Shape();
+            pieShape.moveTo(centerRadius * Math.cos(startAngle), centerRadius * Math.sin(startAngle));
+            pieShape.absarc(0, 0, centerRadius, startAngle, endAngle, false);
+            pieShape.lineTo(floorRadius * Math.cos(endAngle), floorRadius * Math.sin(endAngle));
+            pieShape.absarc(0, 0, floorRadius, endAngle, startAngle, true);
+            pieShape.lineTo(centerRadius * Math.cos(startAngle), centerRadius * Math.sin(startAngle));
+            const pieHeight = mod.packedsize?.height || 1;
+            const extrudeSettings = { depth: pieHeight, bevelEnabled: false, steps: 1 };
+            const geometry = new THREE.ExtrudeGeometry(pieShape, extrudeSettings);
+            geometry.rotateX(-Math.PI/2); // Make vertical
+            geometry.translate(0, 0, 0); // Rest on floor
+            const material = new THREE.MeshLambertMaterial({ color, transparent: true, opacity: 0.8 });
+            const pieSegment = new THREE.Mesh(geometry, material);
+            pieSegment.type = 'PieSegment';
+            pieSegment.moduleData = { ...mod };
+            pieSegment.userData = { startAngle, endAngle, centerRadius, floorRadius };
+            shapes.push(pieSegment);
+            scene.add(pieSegment);
           } else {
             alert('Could not place new module without collision.');
           }

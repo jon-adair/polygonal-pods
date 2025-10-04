@@ -19,8 +19,8 @@
 		"dirty":0.3,
 		"color":"#4488ff",
 		"packedsize": {
-			"width": 0.7,
-			"height": 0.7,
+			"width": 1.5,
+			"height": 1.4,
 			"depth": 0.7
 		},
 		"deployedsize": {
