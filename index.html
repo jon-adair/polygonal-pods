@@ -227,6 +227,15 @@ function getBounding(shape) {
           center: shape.position,
           radius: height / 2 + radius
         };
+      } else if (shape.type === 'CenterCylinder') {
+        // Center cylinder: bounding cylinder
+        const geo = shape.geometry.parameters;
+        return {
+          type: 'cylinder',
+          center: shape.position,
+          radius: geo.radiusTop,
+          height: geo.height
+        };
       } else {
         // Cube: bounding box
         const geo = shape.geometry.parameters;
@@ -255,6 +264,28 @@ function isColliding(a, b, newPosA = null) {
         // Sphere-sphere
         const dist = ca.distanceTo(cb);
         return dist < (ba.radius + bb.radius);
+      } else if ((ba.type === 'cylinder' && bb.type === 'box') || (ba.type === 'box' && bb.type === 'cylinder')) {
+        // Cylinder-box collision: treat cylinder as vertical, check box overlap in xz and y
+        let cyl, box, cylCenter, boxCenter, boxSize;
+        if (ba.type === 'cylinder') {
+          cyl = ba; cylCenter = ca;
+          box = bb; boxCenter = cb; boxSize = bb.size;
+        } else {
+          cyl = bb; cylCenter = cb;
+          box = ba; boxCenter = ca; boxSize = ba.size;
+        }
+        // Check y overlap
+        const cylMinY = cylCenter.y - cyl.height/2;
+        const cylMaxY = cylCenter.y + cyl.height/2;
+        const boxMinY = boxCenter.y - boxSize[1]/2;
+        const boxMaxY = boxCenter.y + boxSize[1]/2;
+        const yOverlap = Math.max(cylMinY, boxMinY) <= Math.min(cylMaxY, boxMaxY);
+        // Check xz overlap (circle-box)
+        const dx = Math.max(boxCenter.x - boxSize[0]/2, Math.min(cylCenter.x, boxCenter.x + boxSize[0]/2));
+        const dz = Math.max(boxCenter.z - boxSize[2]/2, Math.min(cylCenter.z, boxCenter.z + boxSize[2]/2));
+        const distXZ = Math.sqrt((dx - cylCenter.x)**2 + (dz - cylCenter.z)**2);
+        const xzOverlap = distXZ < cyl.radius;
+        return yOverlap && xzOverlap;
       } else {
         // Box-sphere
         let box, sphere, boxCenter, sphereCenter, boxSize, sphereRadius;
@@ -302,7 +333,14 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.154.0/build/three.m
   floor.position.y = -0.1;
   scene.add(floor);
 
-// (Walls removed)
+// Add center cylinder (obstacle)
+const centerCylinderGeometry = new THREE.CylinderGeometry(0.6, 0.6, 2, 32);
+const centerCylinderMaterial = new THREE.MeshLambertMaterial({ color: 0x888888, transparent: true, opacity: 0.5 });
+const centerCylinder = new THREE.Mesh(centerCylinderGeometry, centerCylinderMaterial);
+centerCylinder.position.set(0, 0.5, 0); // y = height/2 so it sits on the floor
+centerCylinder.type = 'CenterCylinder'; // Custom type for collision
+scene.add(centerCylinder);
+shapes.push(centerCylinder);
 
 // Lighting
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
