@@ -1,0 +1,32 @@
+[
+	{
+		"name":"WCS",
+		"dirty":1.0,
+		"packedsize": {
+			"width": 1,
+			"height": 1,
+			"depth": 1
+		},
+		"deployedsize": {
+			"width": 75,
+			"height": 75,
+			"depth": 75
+		},
+		"color":"#ff7723"
+	},
+	{
+		"name":"berth",
+		"dirty":0.3,
+		"color":"#4488ff",
+		"packedsize": {
+			"width": 0.7,
+			"height": 0.7,
+			"depth": 0.7
+		},
+		"deployedsize": {
+			"width": 75,
+			"height": 75,
+			"depth": 75
+		}
+	}
+]

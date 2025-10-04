@@ -1,32 +1,115 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Isometric Room with Draggable Shapes - Three.js</title>
-  <style>
-    body { margin: 0; }
-    #controls {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      z-index: 10;
-      background: rgba(255,255,255,0.9);
-      padding: 8px 12px;
-      border-radius: 6px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    button { margin: 0 4px; }
-  </style>
+<meta charset="UTF-8">
+<title>Isometric Room with Draggable Shapes - Three.js</title>
+<style>
+	body { margin: 0; }
+	#controls {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 140px;
+		height: 100vh;
+		display: flex;
+		flex-direction: column;
+		align-items: stretch;
+		gap: 10px;
+		z-index: 10;
+		background: rgba(255,255,255,0.95);
+		padding: 24px 12px 12px 12px;
+		border-top-right-radius: 12px;
+		border-bottom-right-radius: 12px;
+		box-shadow: 2px 0 12px rgba(0,0,0,0.08);
+	}
+	button {
+		margin: 0 0 8px 0;
+		padding: 10px 0;
+		font-size: 1rem;
+		border-radius: 6px;
+		border: 1px solid #ccc;
+		background: #f7f7f7;
+		cursor: pointer;
+		transition: background 0.2s;
+	}
+	button:hover {
+		background: #e0e0e0;
+	}
+</style>
 </head>
 <body>
-  <div id="controls">
-    <button id="saveBtn">Save Positions</button>
-    <button id="restoreBtn">Restore Positions</button>
-  </div>
-  <script type="module">
-    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.154.0/build/three.module.js';
+<div id="controls">
+	<button id="addModuleBtn">Add Module</button>
+	<div id="moduleSelect" style="display:none; flex-direction:column; gap:6px;"></div>
+	<button id="saveBtn">Save Positions</button>
+	<button id="restoreBtn">Restore Positions</button>
+</div>
+<script type="module">
+// --- Collision Detection ---
+function getBounding(shape) {
+      if (shape.type === 'Group') {
+        // Capsule: bounding sphere
+        // Approximate as a sphere centered at group.position, radius = capsule height/2
+        // Actually, capsule: radius is max of cylinder radius and half cylinder height
+        // But for simplicity, use bounding sphere with radius = cylinderHeight/2 + radius
+        const cyl = shape.children[0];
+        const radius = cyl.geometry.parameters.radiusTop;
+        const height = cyl.geometry.parameters.height;
+        return {
+          type: 'sphere',
+          center: shape.position,
+          radius: height / 2 + radius
+        };
+      } else {
+        // Cube: bounding box
+        const geo = shape.geometry.parameters;
+        return {
+          type: 'box',
+          center: shape.position,
+          size: [geo.width, geo.height, geo.depth]
+        };
+      }
+    }
 
-    // Scene, camera, renderer
+function isColliding(a, b, newPosA = null) {
+      // a and b are shapes; newPosA is optional position for a
+      const ba = getBounding(a);
+      const bb = getBounding(b);
+      // Use newPosA if provided
+      const ca = newPosA || ba.center;
+      const cb = bb.center;
+      if (ba.type === 'box' && bb.type === 'box') {
+        // AABB collision
+        const sa = ba.size, sb = bb.size;
+        return Math.abs(ca.x - cb.x) <= (sa[0] + sb[0]) / 2 &&
+               Math.abs(ca.y - cb.y) <= (sa[1] + sb[1]) / 2 &&
+               Math.abs(ca.z - cb.z) <= (sa[2] + sb[2]) / 2;
+      } else if (ba.type === 'sphere' && bb.type === 'sphere') {
+        // Sphere-sphere
+        const dist = ca.distanceTo(cb);
+        return dist < (ba.radius + bb.radius);
+      } else {
+        // Box-sphere
+        let box, sphere, boxCenter, sphereCenter, boxSize, sphereRadius;
+        if (ba.type === 'box') {
+          box = ba; boxCenter = ca; boxSize = ba.size;
+          sphere = bb; sphereCenter = cb; sphereRadius = bb.radius;
+        } else {
+          box = bb; boxCenter = cb; boxSize = bb.size;
+          sphere = ba; sphereCenter = ca; sphereRadius = ba.radius;
+        }
+        // Clamp sphere center to box
+        const dx = Math.max(boxCenter.x - boxSize[0]/2, Math.min(sphereCenter.x, boxCenter.x + boxSize[0]/2));
+        const dy = Math.max(boxCenter.y - boxSize[1]/2, Math.min(sphereCenter.y, boxCenter.y + boxSize[1]/2));
+        const dz = Math.max(boxCenter.z - boxSize[2]/2, Math.min(sphereCenter.z, boxCenter.z + boxSize[2]/2));
+        const closest = new THREE.Vector3(dx, dy, dz);
+        return closest.distanceTo(sphereCenter) < sphereRadius;
+      }
+    }
+
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.154.0/build/three.module.js';
+
+// Scene, camera, renderer
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0xececec);
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -36,14 +119,14 @@
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
 
-    // Floor
+// Floor
     const floorGeometry = new THREE.BoxGeometry(8, 0.2, 8);
     const floorMaterial = new THREE.MeshLambertMaterial({ color: 0xbfae9e });
     const floor = new THREE.Mesh(floorGeometry, floorMaterial);
     floor.position.y = -0.1;
     scene.add(floor);
 
-    // Back wall (Z-)
+// Back wall (Z-)
     const wallMaterial = new THREE.MeshLambertMaterial({ color: 0xdedede });
     const wall1 = new THREE.Mesh(new THREE.BoxGeometry(8, 3, 0.2), wallMaterial);
     wall1.position.set(0, 1.5, -4);
@@ -53,14 +136,14 @@
     wall2.position.set(-4, 1.5, 0);
     scene.add(wall2);
 
-    // Lighting
+// Lighting
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
     scene.add(ambientLight);
     const directionalLight = new THREE.DirectionalLight(0xffffff, 0.7);
     directionalLight.position.set(5, 10, 7.5);
     scene.add(directionalLight);
 
-    // Three cubes, different sizes and colors
+// Three cubes, different sizes and colors
     const shapes = [];
     const cube1 = new THREE.Mesh(
       new THREE.BoxGeometry(1, 1, 1),
@@ -86,8 +169,8 @@
     shapes.push(cube3);
     scene.add(cube3);
 
-    // Fourth shape: rounded cylinder (capsule)
-    function createCapsule(radius, cylinderHeight, color) {
+// Fourth shape: rounded cylinder (capsule)
+function createCapsule(radius, cylinderHeight, color) {
       // Capsule = cylinder + two half-spheres
       const group = new THREE.Group();
       const cylGeo = new THREE.CylinderGeometry(radius, radius, cylinderHeight, 32);
@@ -106,19 +189,19 @@
       group.add(bottom);
       return group;
     }
-    const capsule = createCapsule(0.4, 1.2, 0xffaa00);
-    capsule.position.set(0, 0.6, -3);
-    shapes.push(capsule);
-    scene.add(capsule);
+const capsule = createCapsule(0.4, 1.2, 0xffaa00);
+capsule.position.set(0, 0.6, -3);
+shapes.push(capsule);
+scene.add(capsule);
 
-    // Raycaster and mouse
+// Raycaster and mouse
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
     let selectedShape = null;
     let offset = new THREE.Vector3();
     let selectedY = 0;
 
-    function getIntersects(event) {
+function getIntersects(event) {
       const rect = renderer.domElement.getBoundingClientRect();
       mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
       mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
@@ -127,7 +210,7 @@
       return raycaster.intersectObjects(shapes.flatMap(obj => obj.type === 'Group' ? obj.children : [obj]));
     }
 
-    renderer.domElement.addEventListener('pointerdown', (event) => {
+renderer.domElement.addEventListener('pointerdown', (event) => {
       const intersects = getIntersects(event);
       if (intersects.length > 0) {
         // Find parent shape
@@ -142,7 +225,7 @@
       }
     });
 
-    renderer.domElement.addEventListener('pointermove', (event) => {
+renderer.domElement.addEventListener('pointermove', (event) => {
       if (!selectedShape) return;
       raycaster.setFromCamera(mouse, camera);
       const rect = renderer.domElement.getBoundingClientRect();
@@ -155,33 +238,108 @@
         newPos.x = Math.max(-3.5, Math.min(3.5, newPos.x));
         newPos.z = Math.max(-3.5, Math.min(3.5, newPos.z));
         newPos.y = selectedY;
-        selectedShape.position.copy(newPos);
+        // Check collision with other shapes
+        let collision = false;
+        for (const other of shapes) {
+          if (other !== selectedShape && isColliding(selectedShape, other, newPos)) {
+            collision = true;
+            break;
+          }
+        }
+        if (!collision) {
+          selectedShape.position.copy(newPos);
+        }
       }
     });
 
-    renderer.domElement.addEventListener('pointerup', () => {
+renderer.domElement.addEventListener('pointerup', () => {
       selectedShape = null;
     });
 
-    // Save/Restore logic
-    let savedPositions = null;
-    document.getElementById('saveBtn').onclick = () => {
-      savedPositions = shapes.map(shape => shape.position.clone());
-    };
-    document.getElementById('restoreBtn').onclick = () => {
-      if (savedPositions) {
-        shapes.forEach((shape, i) => {
-          shape.position.copy(savedPositions[i]);
-        });
-      }
-    };
+// Save/Restore logic
+let savedPositions = null;
+document.getElementById('saveBtn').onclick = () => {
+	savedPositions = shapes.map(shape => shape.position.clone());
+};
+document.getElementById('restoreBtn').onclick = () => {
+	if (savedPositions) {
+		shapes.forEach((shape, i) => {
+			shape.position.copy(savedPositions[i]);
+		});
+	}
+};
 
-    // Render loop
-    function animate() {
-      requestAnimationFrame(animate);
-      renderer.render(scene, camera);
-    }
-    animate();
+// Add Module button logic
+document.getElementById('addModuleBtn').onclick = () => {
+	// Load modules.json and present clickable buttons for selection
+	const moduleSelect = document.getElementById('moduleSelect');
+	moduleSelect.innerHTML = '';
+	moduleSelect.style.display = 'flex';
+	fetch('modules.json?v=' + Date.now())
+		.then(res => res.json())
+		.then(modules => {
+			if (!Array.isArray(modules) || modules.length === 0) {
+				alert('No modules found.');
+				moduleSelect.style.display = 'none';
+				return;
+			}
+			modules.forEach((mod, idx) => {
+				const btn = document.createElement('button');
+				btn.textContent = mod.name;
+				btn.style.background = mod.color || '#eee';
+				btn.onclick = () => {
+					console.log('Selected module:', mod);
+					moduleSelect.style.display = 'none';
+					// Use packedsize and color
+					const w = (mod.packedsize?.width);
+					const h = (mod.packedsize?.height);
+					const d = (mod.packedsize?.depth);
+					console.log(w,h,d);
+					const color = mod.color || '#888888';
+					const cube = new THREE.Mesh(
+						new THREE.BoxGeometry(w, h, d),
+						new THREE.MeshLambertMaterial({ color })
+					);
+					let placed = false;
+					let attempts = 0;
+					while (!placed && attempts < 50) {
+						const x = Math.random() * (7 - w) - (3.5 - w/2);
+						const z = Math.random() * (7 - d) - (3.5 - d/2);
+						const y = h / 2;
+						cube.position.set(x, y, z);
+						console.log(`Trying position: ${x.toFixed(2)}, ${y.toFixed(2)}, ${z.toFixed(2)}`);
+						let collision = false;
+						for (const other of shapes) {
+							if (isColliding(cube, other)) {
+								collision = true;
+								break;
+							}
+						}
+						if (!collision) placed = true;
+						attempts++;
+					}
+					if (placed) {
+						shapes.push(cube);
+						scene.add(cube);
+					} else {
+						alert('Could not place new module without collision.');
+					}
+				};
+				moduleSelect.appendChild(btn);
+			});
+		})
+		.catch(() => {
+			alert('Failed to load modules.json');
+			moduleSelect.style.display = 'none';
+		});
+};
+
+// Render loop
+function animate() {
+	requestAnimationFrame(animate);
+	renderer.render(scene, camera);
+}
+animate();
   </script>
 </body>
 </html>
