@@ -360,6 +360,39 @@ centerCylinder.type = 'CenterCylinder'; // Custom type for collision
 scene.add(centerCylinder);
 shapes.push(centerCylinder);
 
+// Add abstract blue-suited human figure inside center cylinder
+
+const humanGroup = new THREE.Group();
+// Torso (blue capsule)
+const torsoGeometry = new THREE.CapsuleGeometry(0.18, 0.38, 8, 16);
+const torsoMaterial = new THREE.MeshLambertMaterial({ color: 0x2266cc });
+const torso = new THREE.Mesh(torsoGeometry, torsoMaterial);
+torso.position.set(0, 0.5, 0); // Lowered closer to the floor
+humanGroup.add(torso);
+// Arms (blue cylinders)
+const armGeometry = new THREE.CylinderGeometry(0.06, 0.06, 0.32, 8);
+const armMaterial = new THREE.MeshLambertMaterial({ color: 0x2266cc });
+const leftArm = new THREE.Mesh(armGeometry, armMaterial);
+leftArm.position.set(-0.25, 0.45, 0); // Lower and extend for T-pose
+leftArm.rotation.z = Math.PI / 1; // T-pose (horizontal)
+humanGroup.add(leftArm);
+const rightArm = new THREE.Mesh(armGeometry, armMaterial);
+rightArm.position.set(0.25, 0.45, 0);
+rightArm.rotation.z = -Math.PI / 1;
+humanGroup.add(rightArm);
+// Legs (blue cylinders)
+const legGeometry = new THREE.CylinderGeometry(0.07, 0.07, 0.38, 8);
+const legMaterial = new THREE.MeshLambertMaterial({ color: 0x2266cc });
+const leftLeg = new THREE.Mesh(legGeometry, legMaterial);
+leftLeg.position.set(-0.09, 0.12, 0);
+leftLeg.rotation.z = Math.PI / 32;
+humanGroup.add(leftLeg);
+const rightLeg = new THREE.Mesh(legGeometry, legMaterial);
+rightLeg.position.set(0.09, 0.12, 0);
+rightLeg.rotation.z = -Math.PI / 32;
+humanGroup.add(rightLeg);
+scene.add(humanGroup);
+
 // Lighting
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
     scene.add(ambientLight);
