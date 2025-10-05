@@ -19,7 +19,7 @@
   "clean": 0.1,
     "packedsize": { "width": 3.38, "height": 1.015, "depth": 1.35 },
     "color": "#3ab7e2",
-		"adjacency": [{"name":"Hygiene (Cleansing)", "criteria":"max", "threshold":0.4}]
+		"adjacency": [{"name":"Hygiene (Cleansing)", "criteria":"max", "threshold":5.0}]
 
   },
   {
@@ -28,7 +28,7 @@
   "clean": 0.1,
     "packedsize": { "width": 4.12, "height": 1.84, "depth": 2.45 },
     "color": "#3ab7e2",
-	"adjacency": [{"name":"Hygiene (Cleansing)", "criteria":"max", "threshold":0.4}]
+	"adjacency": [{"name":"Hygiene (Cleansing)", "criteria":"max", "threshold":5.0}]
   },
   {
   "name": "Exercise (Resistive Device)",
@@ -36,7 +36,7 @@
   "clean": 0.1,
     "packedsize": { "width": 2.0, "height": 1.18, "depth": 1.57 },
     "color": "#3ab7e2",
-		"adjacency": [{"name":"Hygiene (Cleansing)", "criteria":"max", "threshold":0.4}]
+		"adjacency": [{"name":"Hygiene (Cleansing)", "criteria":"max", "threshold":5.0}]
   },
   {
   "name": "Exercise (Spin Yoga)",
@@ -44,7 +44,7 @@
   "clean": 0.1,
     "packedsize": { "width": 2.0, "height": 1.18, "depth": 1.57 },
     "color": "#3ab7e2",
-		"adjacency": [{"name":"Hygiene (Cleansing)", "criteria":"max", "threshold":0.4}]
+		"adjacency": [{"name":"Hygiene (Cleansing)", "criteria":"max", "threshold":5.0}]
   },
   {
   "name": "Hygiene (Cleansing)",

@@ -184,23 +184,37 @@ function updateInfoPanel() {
       }
     }
   }
-          // --- Adjacency checks ---
-          let adjacencyHtml = '';
-          for (const shape of modulesOnFloor) {
-            const mod = shape.moduleData;
-			// console.log("checking adjacency for " + mod.name);
-            if (Array.isArray(mod.adjacency) && mod.adjacency.length > 0) {
-              for (const adj of mod.adjacency) {
-                const requiredName = adj.name;
-				// console.log("checking adjacency for " + mod.name + " requires " + requiredName);
-                const found = modulesOnFloor.some(s => s.moduleData && s.moduleData.name === requiredName);
-				// console.log("found? " + found);
-                if (!found) {
-                  adjacencyHtml += `<div style='color:#c00;font-weight:bold;'>${mod.name} requires ${requiredName} module</div>`;
-                }
-              }
+  // --- Adjacency checks ---
+  let adjacencyHtml = '';
+  for (const shape of modulesOnFloor) {
+    const mod = shape.moduleData;
+    if (Array.isArray(mod.adjacency) && mod.adjacency.length > 0) {
+      for (const adj of mod.adjacency) {
+        const requiredName = adj.name;
+        // Find all modules with requiredName
+        const foundShapes = modulesOnFloor.filter(s => s.moduleData && s.moduleData.name === requiredName);
+        if (foundShapes.length === 0) {
+          adjacencyHtml += `<div style='color:#c00;font-weight:bold;'>${mod.name} requires ${requiredName} module</div>`;
+        } else if (adj.criteria === 'max' && typeof adj.threshold === 'number') {
+          // Check if any found module is within threshold distance
+          const posA = getModuleCenter(shape);
+          let withinThreshold = false;
+          for (const foundShape of foundShapes) {
+            const posB = getModuleCenter(foundShape);
+            const dist = posA.distanceTo(posB);
+			console.log(`Checking adjacency: ${mod.name} to ${requiredName}, distance ${dist.toFixed(2)}, threshold ${adj.threshold}`);
+            if (dist <= adj.threshold) {
+              withinThreshold = true;
+              break;
             }
           }
+          if (!withinThreshold) {
+            adjacencyHtml += `<div style='color:#c00;font-weight:bold;'>${mod.name} requires ${requiredName} module (max ${adj.threshold})</div>`;
+          }
+        }
+      }
+    }
+  }
   // Highlight edges for contaminated modules, remove for others
   for (const shape of modulesOnFloor) {
     // Restore original color if previously contaminated
