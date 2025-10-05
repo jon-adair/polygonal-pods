@@ -184,6 +184,23 @@ function updateInfoPanel() {
       }
     }
   }
+          // --- Adjacency checks ---
+          let adjacencyHtml = '';
+          for (const shape of modulesOnFloor) {
+            const mod = shape.moduleData;
+			// console.log("checking adjacency for " + mod.name);
+            if (Array.isArray(mod.adjacency) && mod.adjacency.length > 0) {
+              for (const adj of mod.adjacency) {
+                const requiredName = adj.name;
+				// console.log("checking adjacency for " + mod.name + " requires " + requiredName);
+                const found = modulesOnFloor.some(s => s.moduleData && s.moduleData.name === requiredName);
+				// console.log("found? " + found);
+                if (!found) {
+                  adjacencyHtml += `<div style='color:#c00;font-weight:bold;'>${mod.name} requires ${requiredName} module</div>`;
+                }
+              }
+            }
+          }
   // Highlight edges for contaminated modules, remove for others
   for (const shape of modulesOnFloor) {
     // Restore original color if previously contaminated
@@ -208,6 +225,8 @@ function updateInfoPanel() {
       }
     }
   }
+
+
   // Remove any previous module list and warnings
   if (infoPanel) {
     infoPanel.querySelectorAll('.module-list').forEach(e => e.remove());
@@ -223,6 +242,12 @@ function updateInfoPanel() {
       infoPanel.appendChild(warnDiv);
     }
   }
+                if (adjacencyHtml) {
+              const adjDiv = document.createElement('div');
+              adjDiv.className = 'module-warning';
+              adjDiv.innerHTML = adjacencyHtml;
+              infoPanel.appendChild(adjDiv);
+            }
   if (wcs && berth) {
     // Compute center point of each pie segment
     function getPieCenter(shape) {
