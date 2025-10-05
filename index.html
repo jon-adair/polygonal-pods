@@ -54,6 +54,12 @@
 </head>
 <body>
 <div id="controls">
+  <div id="moduleModal" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.35); z-index:10000; justify-content:center; align-items:center;">
+    <div style="background:#fff; border-radius:16px; box-shadow:0 4px 32px rgba(0,0,0,0.18); padding:32px 32px 24px 32px; min-width:340px; max-width:90vw; max-height:80vh; overflow-y:auto; display:flex; flex-direction:column; gap:12px; align-items:stretch;">
+      <div style="font-size:1.3rem; font-weight:bold; margin-bottom:12px; text-align:center;">Select a Module</div>
+      <div id="moduleModalButtons" style="display:flex; flex-direction:column; gap:10px;"></div>
+    </div>
+  </div>
   <div style="display:flex; flex-direction:row; gap:8px; margin-bottom:10px; width:100%;">
     <button class="floorBtn" id="floorBtn1" style="flex:1 1 0;">1</button>
     <button class="floorBtn" id="floorBtn2" style="flex:1 1 0;">2</button>
@@ -374,7 +380,7 @@ for (let i = 0; i < NUM_FLOORS; i++) {
 
 // Add center cylinder (obstacle) to each floor
 for (let i = 0; i < NUM_FLOORS; i++) {
-  const centerCylinderGeometry = new THREE.CylinderGeometry(0.6, 0.6, 2, 32);
+  const centerCylinderGeometry = new THREE.CylinderGeometry(0.6, 0.6, 3, 32);
   const centerCylinderMaterial = new THREE.MeshLambertMaterial({ color: 0x888888, transparent: true, opacity: 0.5 });
   const centerCylinder = new THREE.Mesh(centerCylinderGeometry, centerCylinderMaterial);
   centerCylinder.position.set(0, 0.5, 0);
@@ -765,32 +771,39 @@ document.getElementById('restoreBtn').onclick = () => {
 };
 
 // Add Module button logic
-document.getElementById('addModuleBtn').onclick = () => {
-  // Load modules.json and present clickable buttons for selection
-  const moduleSelect = document.getElementById('moduleSelect');
-  moduleSelect.innerHTML = '';
-  moduleSelect.style.display = 'flex';
+document.getElementById('addModuleBtn').onclick = function() {
+// Only keep this correct version of addModuleBtn.onclick
+  // Show modal overlay for module selection
+  const modal = document.getElementById('moduleModal');
+  const modalButtons = document.getElementById('moduleModalButtons');
+  modalButtons.innerHTML = '';
+  modal.style.display = 'flex';
   fetch('modules.json?v=' + Date.now())
-    .then(res => res.json())
-    .then(modules => {
+    .then(function(res) { return res.json(); })
+    .then(function(modules) {
       if (!Array.isArray(modules) || modules.length === 0) {
         alert('No modules found.');
-        moduleSelect.style.display = 'none';
+        modal.style.display = 'none';
         return;
       }
-      modules.forEach((mod, idx) => {
+      modules.forEach(function(mod) {
         const btn = document.createElement('button');
         btn.textContent = mod.name;
         btn.style.background = mod.color || '#eee';
-        btn.onclick = () => {
+        btn.style.fontSize = '1.1rem';
+        btn.style.padding = '12px 0';
+        btn.style.borderRadius = '8px';
+        btn.style.border = '1px solid #ccc';
+        btn.style.cursor = 'pointer';
+        btn.onclick = function() {
           console.log('Selected module:', mod);
-          moduleSelect.style.display = 'none';
+          modal.style.display = 'none';
           // Use packedsize width for pie slice angular width
           const color = mod.color || '#888888';
-          const wedgeDepth = mod.packedsize?.depth || 1;
+          const wedgeDepth = (mod.packedsize && mod.packedsize.depth) ? mod.packedsize.depth : 1;
           const outerRadius = floorRadius;
           const innerRadius = Math.max(0.3, outerRadius - wedgeDepth);
-          const sliceWidth = mod.packedsize?.width || 1;
+          const sliceWidth = (mod.packedsize && mod.packedsize.width) ? mod.packedsize.width : 1;
           // Calculate angular width: proportional to sliceWidth
           const totalCircumference = 2 * Math.PI * ((innerRadius + floorRadius) / 2);
           const angularWidth = Math.max(0.2, sliceWidth / totalCircumference * 2 * Math.PI);
@@ -802,7 +815,8 @@ document.getElementById('addModuleBtn').onclick = () => {
           while (!placed && attempts < maxTries) {
             startAngle = Math.random() * 2 * Math.PI;
             let collision = false;
-            for (const other of floors[currentFloor].shapes) {
+            for (let i = 0; i < floors[currentFloor].shapes.length; i++) {
+              const other = floors[currentFloor].shapes[i];
               if (other.type === 'PieSegment') {
                 const a0 = other.userData.startAngle;
                 const a1 = other.userData.endAngle;
@@ -826,7 +840,7 @@ document.getElementById('addModuleBtn').onclick = () => {
             pieShape.lineTo(outerRadius * Math.cos(endAngle), outerRadius * Math.sin(endAngle));
             pieShape.absarc(0, 0, outerRadius, endAngle, startAngle, true);
             pieShape.lineTo(innerRadius * Math.cos(startAngle), innerRadius * Math.sin(startAngle));
-            const pieHeight = mod.packedsize?.height || 1;
+            const pieHeight = (mod.packedsize && mod.packedsize.height) ? mod.packedsize.height : 1;
             const extrudeSettings = { depth: pieHeight, bevelEnabled: false, steps: 1 };
             const geometry = new THREE.ExtrudeGeometry(pieShape, extrudeSettings);
             geometry.rotateX(-Math.PI/2);
@@ -842,12 +856,12 @@ document.getElementById('addModuleBtn').onclick = () => {
             alert('Could not place new module without collision.');
           }
         };
-        moduleSelect.appendChild(btn);
+        modalButtons.appendChild(btn);
       });
     })
-    .catch(() => {
+    .catch(function() {
       alert('Failed to load modules.json');
-      moduleSelect.style.display = 'none';
+      modal.style.display = 'none';
     });
 };
 
