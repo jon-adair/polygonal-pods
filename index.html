@@ -116,46 +116,68 @@ function updateInfoPanel() {
   // List modules and volumes
   const infoPanel = document.getElementById('infoPanel');
   let moduleListHtml = '<div style="margin-top:12px;"><b>Modules on this floor:</b><br>';
-  for (const shape of floors[currentFloor].shapes) {
-    if (shape.moduleData && shape.moduleData.packedsize) {
-      const mod = shape.moduleData;
-      const ps = mod.packedsize;
-      let vol = '-';
-      if (typeof ps.width === 'number' && typeof ps.height === 'number' && typeof ps.depth === 'number') {
-        vol = (ps.width * ps.height * ps.depth).toFixed(2);
-      }
-  moduleListHtml += `${mod.name} <span style='color:#888'>${vol} m^3</span><br>`;
+  const modulesOnFloor = floors[currentFloor].shapes.filter(s => s.moduleData);
+  for (const shape of modulesOnFloor) {
+    const mod = shape.moduleData;
+    const ps = mod.packedsize;
+    let vol = '-';
+    if (ps && typeof ps.width === 'number' && typeof ps.height === 'number' && typeof ps.depth === 'number') {
+      vol = (ps.width * ps.height * ps.depth).toFixed(2);
     }
-    if (shape.moduleData && shape.moduleData.name === 'WCS') wcs = shape;
-    if (shape.moduleData && shape.moduleData.name === 'berth') berth = shape;
+    moduleListHtml += `${mod.name} <span style='color:#888'>${vol} m^3</span><br>`;
+    if (mod.name === 'WCS') wcs = shape;
+    if (mod.name === 'berth') berth = shape;
   }
   moduleListHtml += '</div>';
-  if (wcs) {
-    wcsVal.textContent = 'YES';
-    wcsVal.style.color = '#228B22';
-    wcsVal.style.fontWeight = 'bold';
-  } else {
-    wcsVal.textContent = 'NO';
-    wcsVal.style.color = '#c00';
-    wcsVal.style.fontWeight = 'bold';
+  // --- Warning logic ---
+  let warningHtml = '';
+  // Helper to get true center for any module
+  function getModuleCenter(shape) {
+    if (shape.type === 'PieSegment' && shape.userData) {
+      const angle = (shape.userData.startAngle + shape.userData.endAngle) / 2;
+      const innerRadius = shape.userData.innerRadius || 0;
+      const outerRadius = shape.userData.outerRadius || 0;
+      const radius = (innerRadius + outerRadius) / 2;
+      // Pie segments are offset by shape.position (world position)
+      return new THREE.Vector3(
+        shape.position.x + radius * Math.cos(angle),
+        shape.position.y,
+        shape.position.z + radius * Math.sin(angle)
+      );
+    } else {
+      return shape.position;
+    }
   }
-  if (berth) {
-    berthVal.textContent = 'YES';
-    berthVal.style.color = '#228B22';
-    berthVal.style.fontWeight = 'bold';
-  } else {
-    berthVal.textContent = 'NO';
-    berthVal.style.color = '#c00';
-    berthVal.style.fontWeight = 'bold';
+  for (let i = 0; i < modulesOnFloor.length; i++) {
+    const modA = modulesOnFloor[i].moduleData;
+    const cleanA = 1.0 - (typeof modA.clean === 'number' ? modA.clean : 0);
+    const posA = getModuleCenter(modulesOnFloor[i]);
+    for (let j = 0; j < modulesOnFloor.length; j++) {
+      if (i === j) continue;
+      const modB = modulesOnFloor[j].moduleData;
+      const dirtyB = typeof modB.dirty === 'number' ? modB.dirty : 0;
+      const posB = getModuleCenter(modulesOnFloor[j]);
+      const dist = posA.distanceTo(posB);
+       console.log(`Checking ${modA.name} (clean ${cleanA}) vs ${(dirtyB / dist)} ${modB.name} (dirty ${dirtyB}), dist ${dist}`);
+      if (dist > 0 && cleanA < (dirtyB / dist)) {
+        warningHtml += `<div style='color:#c00;font-weight:bold;'>Warning: <span style='color:#c00;'>${modA.name}</span> & <span style='color:#c00;'>${modB.name}</span></div>`;
+      }
+    }
   }
-  // Inject module list into info panel
+  // Remove any previous module list and warnings
   if (infoPanel) {
-    // Remove any previous module list
     infoPanel.querySelectorAll('.module-list').forEach(e => e.remove());
+    infoPanel.querySelectorAll('.module-warning').forEach(e => e.remove());
     const div = document.createElement('div');
     div.className = 'module-list';
     div.innerHTML = moduleListHtml;
     infoPanel.appendChild(div);
+    if (warningHtml) {
+      const warnDiv = document.createElement('div');
+      warnDiv.className = 'module-warning';
+      warnDiv.innerHTML = warningHtml;
+      infoPanel.appendChild(warnDiv);
+    }
   }
   if (wcs && berth) {
     // Compute center point of each pie segment
