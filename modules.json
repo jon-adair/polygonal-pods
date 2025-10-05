@@ -1,167 +1,174 @@
 [
   {
-  "name": "Waste Collection",
-  "dirty": 1.0,
-  "clean": 0.0,
-    "packedsize": {"width": 1,"height": 1,"depth": 2},
+    "name": "Waste Collection",
+    "dirty": 1.0,
+    "clean": 0.0,
+    "packedsize": { "width": 1, "height": 1, "depth": 2 },
     "color": "#ff7723"
   },
   {
-  "name": "Berth",
-  "dirty": 0.3,
-  "clean": 0.4,
+    "name": "Berth",
+    "dirty": 0.3,
+    "clean": 0.4,
     "color": "#6498ff",
-    "packedsize": {"width": 1.5,"height": 0.7, "depth": 1.4}
+    "packedsize": { "width": 1.5, "height": 0.7, "depth": 1.4 }
   },
   {
-  "name": "Exercise (Cycle Ergometer)",
-  "dirty": 0.7,
-  "clean": 0.1,
+    "name": "Exercise (Cycle Ergometer)",
+    "dirty": 0.7,
+    "clean": 0.1,
     "packedsize": { "width": 3.38, "height": 1.015, "depth": 1.35 },
     "color": "#3ab7e2",
-		"adjacency": [{"name":"Hygiene (Cleansing)", "criteria":"max", "threshold":5.0}]
-
+    "adjacency": [
+      { "name": "Hygiene (Cleansing)", "criteria": "max", "threshold": 5.0 }
+    ]
   },
   {
-  "name": "Exercise (Treadmill)",
-  "dirty": 0.7,
-  "clean": 0.1,
+    "name": "Exercise (Treadmill)",
+    "dirty": 0.7,
+    "clean": 0.1,
     "packedsize": { "width": 4.12, "height": 1.84, "depth": 2.45 },
     "color": "#3ab7e2",
-	"adjacency": [{"name":"Hygiene (Cleansing)", "criteria":"max", "threshold":5.0}]
+    "adjacency": [
+      { "name": "Hygiene (Cleansing)", "criteria": "max", "threshold": 5.0 }
+    ]
   },
   {
-  "name": "Exercise (Resistive Device)",
-  "dirty": 0.7,
-  "clean": 0.1,
+    "name": "Exercise (Resistive Device)",
+    "dirty": 0.7,
+    "clean": 0.1,
     "packedsize": { "width": 2.0, "height": 1.18, "depth": 1.57 },
     "color": "#3ab7e2",
-		"adjacency": [{"name":"Hygiene (Cleansing)", "criteria":"max", "threshold":5.0}]
+    "adjacency": [
+      { "name": "Hygiene (Cleansing)", "criteria": "max", "threshold": 5.0 }
+    ]
   },
   {
-  "name": "Exercise (Spin Yoga)",
-  "dirty": 0.7,
-  "clean": 0.1,
+    "name": "Exercise (Spin Yoga)",
+    "dirty": 0.7,
+    "clean": 0.1,
     "packedsize": { "width": 2.0, "height": 1.18, "depth": 1.57 },
     "color": "#3ab7e2",
-		"adjacency": [{"name":"Hygiene (Cleansing)", "criteria":"max", "threshold":5.0}]
+    "adjacency": [
+      { "name": "Hygiene (Cleansing)", "criteria": "max", "threshold": 5.0 }
+    ]
   },
   {
-  "name": "Hygiene (Cleansing)",
-  "dirty": 0.6,
-  "clean": 0.0,
+    "name": "Hygiene (Cleansing)",
+    "dirty": 0.6,
+    "clean": 0.0,
     "packedsize": { "width": 4.35, "height": 1.305, "depth": 1.74 },
     "color": "#ff7723"
   },
-{
-  "name": "Meal Preparation (Food Prep)",
-  "dirty": 0.3,
-  "clean": 0.4,
+  {
+    "name": "Meal Preparation (Food Prep)",
+    "dirty": 0.3,
+    "clean": 0.4,
     "packedsize": { "width": 4.35, "height": 1.305, "depth": 1.74 },
     "color": "#6a8ae2"
   },
   {
-  "name": "Meal Preparation (Work Surface)",
-  "dirty": 0.5,
-  "clean": 0.5,
+    "name": "Meal Preparation (Work Surface)",
+    "dirty": 0.5,
+    "clean": 0.5,
     "packedsize": { "width": 3.3, "height": 0.99, "depth": 1.32 },
     "color": "#6a8ae2"
   },
   {
-  "name": "Medical (Computer)",
-  "dirty": 0.0,
-  "clean": 0.2,
+    "name": "Medical (Computer)",
+    "dirty": 0.0,
+    "clean": 0.2,
     "packedsize": { "width": 1.2, "height": 0.96, "depth": 0.96 },
     "color": "#e23a7a"
   },
   {
-  "name": "Medical (Medical Care)",
-  "dirty": 0.6,
-  "clean": 1.0,
+    "name": "Medical (Medical Care)",
+    "dirty": 0.6,
+    "clean": 1.0,
     "packedsize": { "width": 4.8, "height": 1.74, "depth": 2.12 },
     "color": "#e23a7a"
   },
-{
-  "name": "Storage",
-  "dirty": 0.0,
-  "clean": 0.0,
+  {
+    "name": "Storage",
+    "dirty": 0.0,
+    "clean": 0.0,
     "packedsize": { "width": 0.6, "height": 1.2, "depth": 1.8 },
     "color": "#a0a0a0"
   },
   {
-  "name": "Group Social-1 (Open Area) / Mission Planning-3 (Training)",
-  "dirty": 0.0,
-  "clean": 0.4,
+    "name": "Group Social-1 (Open Area) / Mission Planning-3 (Training)",
+    "dirty": 0.0,
+    "clean": 0.4,
     "packedsize": { "width": 9.1, "height": 2.0, "depth": 2.75 },
     "color": "#3ae2b7"
   },
   {
-  "name": "Group Social-2 (Table) / Meal Consumption (Table) / Mission Planning-2 (Table)",
-  "dirty": 0.3,
-  "clean": 0.4,
+    "name": "Group Social-2 (Table) / Meal Consumption (Table) / Mission Planning-2 (Table)",
+    "dirty": 0.3,
+    "clean": 0.4,
     "packedsize": { "width": 5.045, "height": 2.0, "depth": 2.0 },
     "color": "#3ae2b7"
   },
   {
-  "name": "Logistics-2 (Temporary Stowage)",
-  "dirty": 0.0,
-  "clean": 0.0,
+    "name": "Logistics-2 (Temporary Stowage)",
+    "dirty": 0.0,
+    "clean": 0.0,
     "packedsize": { "width": 6.0, "height": 1.8, "depth": 2.4 },
     "color": "#a0a0a0"
   },
   {
-  "name": "Maintenance-1 (Computer) / EVA-2 (EVA Computer/Data)",
-  "dirty": 0.0,
-  "clean": 0.0,
+    "name": "Maintenance-1 (Computer) / EVA-2 (EVA Computer/Data)",
+    "dirty": 0.0,
+    "clean": 0.0,
     "packedsize": { "width": 3.4, "height": 1.02, "depth": 1.36 },
     "color": "#7ae23a"
   },
   {
-  "name": "Maintenance-2 (Work Surface) / Logistics-1 (Work Surface) / EVA-1 (Suit Testing)",
-  "dirty": 0.0,
-  "clean": 0.0,
+    "name": "Maintenance-2 (Work Surface) / Logistics-1 (Work Surface) / EVA-1 (Suit Testing)",
+    "dirty": 0.0,
+    "clean": 0.0,
     "packedsize": { "width": 4.82, "height": 1.445, "depth": 1.93 },
     "color": "#7ae23a"
   },
   {
-  "name": "Mission Planning-2 (Computer/Command) / Spacecraft Monitoring",
-  "dirty": 0.0,
-  "clean": 0.0,
+    "name": "Mission Planning-2 (Computer/Command) / Spacecraft Monitoring",
+    "dirty": 0.0,
+    "clean": 0.0,
     "packedsize": { "width": 3.42, "height": 1.025, "depth": 1.37 },
     "color": "#e23a3a"
   },
   {
-  "name": "Private Habitation-1 (Work Surface) / Medical-2 (Ambulatory Care)",
-  "dirty": 0.0,
-  "clean": 0.4,
+    "name": "Private Habitation-1 (Work Surface) / Medical-2 (Ambulatory Care)",
+    "dirty": 0.0,
+    "clean": 0.4,
     "packedsize": { "width": 8.7, "height": 2.0, "depth": 2.75 },
     "color": "#7a7af2"
   },
   {
-  "name": "Private Habitation-2 (Sleep & Relaxation) / Hygiene-2 (Non-Cleansing)",
-  "dirty": 0.2,
-  "clean": 0.4,
+    "name": "Private Habitation-2 (Sleep & Relaxation) / Hygiene-2 (Non-Cleansing)",
+    "dirty": 0.2,
+    "clean": 0.4,
     "packedsize": { "width": 6.98, "height": 2.0, "depth": 2.79 },
     "color": "#e2e23a"
   },
   {
-  "name": "Waste Management",
-  "dirty": 1.0,
-  "clean": 0.0,
+    "name": "Waste Management",
+    "dirty": 1.0,
+    "clean": 0.0,
     "packedsize": { "width": 3.76, "height": 1.13, "depth": 3.0 },
     "color": "#3ae2e2"
   },
   {
-  "name": "Logistics-3 (Storage Access)",
-  "dirty": 0.0,
-  "clean": 0.0,
+    "name": "Logistics-3 (Storage Access)",
+    "dirty": 0.0,
+    "clean": 0.0,
     "packedsize": { "width": null, "height": null, "depth": null },
     "color": "#e23ae2"
   },
   {
-  "name": "Utilization-1 (Scientific Research)",
-  "dirty": 0.0,
-  "clean": 0.0,
+    "name": "Utilization-1 (Scientific Research)",
+    "dirty": 0.0,
+    "clean": 0.0,
     "packedsize": { "width": null, "height": null, "depth": null },
     "color": "#e2e23a"
   }
