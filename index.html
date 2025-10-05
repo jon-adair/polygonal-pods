@@ -115,7 +115,7 @@ function updateInfoPanel() {
   let wcs = null, berth = null;
   // List modules and volumes
   const infoPanel = document.getElementById('infoPanel');
-  let moduleListHtml = '<div style="margin-top:12px;"><b>Modules on this floor:</b><ul style="margin:6px 0 0 18px;">';
+  let moduleListHtml = '<div style="margin-top:12px;"><b>Modules on this floor:</b><br>';
   for (const shape of floors[currentFloor].shapes) {
     if (shape.moduleData && shape.moduleData.packedsize) {
       const mod = shape.moduleData;
@@ -124,12 +124,12 @@ function updateInfoPanel() {
       if (typeof ps.width === 'number' && typeof ps.height === 'number' && typeof ps.depth === 'number') {
         vol = (ps.width * ps.height * ps.depth).toFixed(2);
       }
-  moduleListHtml += `<li>${mod.name} <span style='color:#888'>${vol} m^3</span></li>`;
+  moduleListHtml += `${mod.name} <span style='color:#888'>${vol} m^3</span><br>`;
     }
     if (shape.moduleData && shape.moduleData.name === 'WCS') wcs = shape;
     if (shape.moduleData && shape.moduleData.name === 'berth') berth = shape;
   }
-  moduleListHtml += '</ul></div>';
+  moduleListHtml += '</div>';
   if (wcs) {
     wcsVal.textContent = 'YES';
     wcsVal.style.color = '#228B22';
