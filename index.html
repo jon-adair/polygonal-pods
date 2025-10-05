@@ -124,16 +124,26 @@ function updateInfoPanel() {
   const infoPanel = document.getElementById('infoPanel');
   let moduleListHtml = '<div style="margin-top:12px;"><b>Modules on this floor:</b><br>';
   const modulesOnFloor = floors[currentFloor].shapes.filter(s => s.moduleData);
+  // Sum volumes by module name
+  const moduleVolumes = {};
   for (const shape of modulesOnFloor) {
     const mod = shape.moduleData;
     const ps = mod.packedsize;
-    let vol = '-';
+    let vol = 0;
     if (ps && typeof ps.width === 'number' && typeof ps.height === 'number' && typeof ps.depth === 'number') {
-      vol = (ps.width * ps.height * ps.depth).toFixed(2);
+      vol = ps.width * ps.height * ps.depth;
     }
-    moduleListHtml += `${mod.name} <span style='color:#888'>${vol} m&sup3;</span><br>`;
+    if (!moduleVolumes[mod.name]) {
+      moduleVolumes[mod.name] = { volume: 0, shape: shape };
+    }
+    moduleVolumes[mod.name].volume += vol;
+    // Track WCS/berth for warning logic
     if (mod.name === 'WCS') wcs = shape;
     if (mod.name === 'berth') berth = shape;
+  }
+  for (const name in moduleVolumes) {
+    const vol = moduleVolumes[name].volume > 0 ? moduleVolumes[name].volume.toFixed(2) : '-';
+    moduleListHtml += `${name} <span style='color:#888'>${vol} m&sup3;</span><br>`;
   }
   moduleListHtml += '</div>';
   // --- Warning logic ---
@@ -155,6 +165,9 @@ function updateInfoPanel() {
       return shape.position;
     }
   }
+  // Edge highlight management for contamination
+  // Store contaminated shapes for this update
+  const contaminatedShapes = new Set();
   for (let i = 0; i < modulesOnFloor.length; i++) {
     const modA = modulesOnFloor[i].moduleData;
     const cleanA = 1.0 - (typeof modA.clean === 'number' ? modA.clean : 0);
@@ -165,9 +178,33 @@ function updateInfoPanel() {
       const dirtyB = typeof modB.dirty === 'number' ? modB.dirty : 0;
       const posB = getModuleCenter(modulesOnFloor[j]);
       const dist = posA.distanceTo(posB);
-       console.log(`Checking ${modA.name} (clean ${cleanA}) vs ${(dirtyB / dist)} ${modB.name} (dirty ${dirtyB}), dist ${dist}`);
       if (dist > 0 && cleanA < (2*dirtyB / dist)) {
         warningHtml += `<div style='color:#c00;font-weight:bold;'>Warning: <span style='color:#c00;'>${modA.name} contaminated by ${modB.name}</span></div>`;
+        contaminatedShapes.add(modulesOnFloor[i]);
+      }
+    }
+  }
+  // Highlight edges for contaminated modules, remove for others
+  for (const shape of modulesOnFloor) {
+    // Restore original color if previously contaminated
+    if (shape.userData && shape.userData.wasRed) {
+      if (!contaminatedShapes.has(shape)) {
+        if (shape.userData.originalColor !== undefined && shape.material) {
+          shape.material.color.set(shape.userData.originalColor);
+        }
+        shape.userData.wasRed = false;
+      }
+    }
+    // Set color to red if contaminated
+    if (contaminatedShapes.has(shape)) {
+      if (shape.material) {
+        if (!shape.userData || !shape.userData.wasRed) {
+          // Store original color
+          shape.userData = shape.userData || {};
+          shape.userData.originalColor = '#' + shape.material.color.getHexString();
+        }
+        shape.material.color.set('#ff0000');
+        shape.userData.wasRed = true;
       }
     }
   }
@@ -927,27 +964,34 @@ document.getElementById('addModuleBtn').onclick = function() {
           for (let deg = 0; deg < 360; deg += 1) {
             startAngle = deg * Math.PI / 180;
             let collision = false;
+            const newEnd = startAngle + angularWidth;
             for (let i = 0; i < floors[currentFloor].shapes.length; i++) {
               const other = floors[currentFloor].shapes[i];
               if (other.type === 'PieSegment') {
                 const a0 = other.userData.startAngle;
                 const a1 = other.userData.endAngle;
-                // Improved overlap check for circular intervals
+                // Robust overlap check for circular intervals
                 function intervalsOverlap(s1, e1, s2, e2) {
                   s1 = ((s1 % (2*Math.PI)) + 2*Math.PI) % (2*Math.PI);
                   e1 = ((e1 % (2*Math.PI)) + 2*Math.PI) % (2*Math.PI);
                   s2 = ((s2 % (2*Math.PI)) + 2*Math.PI) % (2*Math.PI);
                   e2 = ((e2 % (2*Math.PI)) + 2*Math.PI) % (2*Math.PI);
+                  // Check if intervals [s1,e1] and [s2,e2] overlap on a circle
+                  if (s1 === e1 || s2 === e2) return false; // zero-width
                   const EPS = 1e-6;
-                  function intervalContains(s, e, x) {
+                  function inInterval(s, e, x) {
                     if (s < e) return x > s + EPS && x < e - EPS;
                     return x > s + EPS || x < e - EPS;
                   }
-                  return intervalContains(s1, e1, s2) || intervalContains(s1, e1, e2) ||
-                         intervalContains(s2, e2, s1) || intervalContains(s2, e2, e1);
+                  return inInterval(s1, e1, s2) || inInterval(s1, e1, e2) ||
+                         inInterval(s2, e2, s1) || inInterval(s2, e2, e1);
                 }
-                const newEnd = startAngle + angularWidth;
                 if (intervalsOverlap(startAngle, newEnd, a0, a1)) {
+                  collision = true;
+                  break;
+                }
+                // Also check for exact angle match (prevent stacking)
+                if (Math.abs(startAngle - a0) < 1e-4 || Math.abs(newEnd - a1) < 1e-4) {
                   collision = true;
                   break;
                 }
