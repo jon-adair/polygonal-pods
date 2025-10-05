@@ -5,7 +5,7 @@
 		"packedsize": {
 		"width": 1,
 		"height": 1,
-		"depth": 1
+		"depth": 2
 		},
 		"deployedsize": {
 			"width": 75,
@@ -21,7 +21,7 @@
 		"packedsize": {
 		"width": 1.5,
 		"height": 0.7,
-		"depth": 0.7
+		"depth": 1.4
 		},
 		"deployedsize": {
 			"width": 75,
@@ -46,17 +46,17 @@
 	},
 	{
 		"name": "Group Social-1 (Open Area) / Mission Planning-3 (Training)",
-		"packedsize": {"width": 18.20, "height": 2.0, "depth": 7.28},
+		"packedsize": {"width": 9.10, "height": 2.0, "depth": 2.75},
 		"color": "#e2b73a"
 	},
 	{
 		"name": "Group Social-2 (Table) / Meal Consumption (Table) / Mission Planning-2 (Table)",
-		"packedsize": {"width": 10.09, "height": 2.0, "depth": 4.03},
+		"packedsize": {"width": 5.045, "height": 2.0, "depth": 2.0},
 		"color": "#3ae2b7"
 	},
 	{
 		"name": "Human Waste-1 (Waste Collection)",
-		"packedsize": {"width": 2.36, "height": 0.71, "depth": 0.94},
+		"packedsize": {"width": 2.36, "height": 0.71, "depth": 1.88},
 		"color": "#b73ae2"
 	},
 	{
@@ -91,7 +91,7 @@
 	},
 	{
 		"name": "Medical-1 (Computer)",
-		"packedsize": {"width": 1.20, "height": 0.36, "depth": 0.48},
+		"packedsize": {"width": 1.20, "height": 0.36, "depth": 0.96},
 		"color": "#3ae27a"
 	},
 	{
@@ -106,17 +106,17 @@
 	},
 	{
 		"name": "Private Habitation-1 (Work Surface) / Medical-2 (Ambulatory Care)",
-		"packedsize": {"width": 17.40, "height": 2.0, "depth": 6.96},
+		"packedsize": {"width": 8.7, "height": 2.0, "depth": 2.75},
 		"color": "#3a3ae2"
 	},
 	{
 		"name": "Private Habitation-2 (Sleep & Relaxation) / Hygiene-2 (Non-Cleansing)",
-		"packedsize": {"width": 13.96, "height": 2.0, "depth": 5.58},
+		"packedsize": {"width": 6.98, "height": 2.0, "depth": 2.79},
 		"color": "#e2e23a"
 	},
 	{
 		"name": "Waste Management",
-		"packedsize": {"width": 3.76, "height": 1.13, "depth": 1.50},
+		"packedsize": {"width": 3.76, "height": 1.13, "depth": 3.0},
 		"color": "#3ae2e2"
 	},
 	{
