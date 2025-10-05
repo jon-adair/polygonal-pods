@@ -39,6 +39,14 @@
 		"adjacency": [{"name":"Hygiene (Cleansing)", "criteria":"max", "threshold":0.4}]
   },
   {
+  "name": "Exercise (Spin Yoga)",
+  "dirty": 0.7,
+  "clean": 0.1,
+    "packedsize": { "width": 2.0, "height": 1.18, "depth": 1.57 },
+    "color": "#3ab7e2",
+		"adjacency": [{"name":"Hygiene (Cleansing)", "criteria":"max", "threshold":0.4}]
+  },
+  {
   "name": "Hygiene (Cleansing)",
   "dirty": 0.6,
   "clean": 0.0,

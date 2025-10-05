@@ -1015,13 +1015,91 @@ document.getElementById('addModuleBtn').onclick = function() {
             const geometry = new THREE.ExtrudeGeometry(pieShape, extrudeSettings);
             geometry.rotateX(-Math.PI/2);
             geometry.translate(0, 0, 0);
-            const material = new THREE.MeshLambertMaterial({ color, transparent: true, opacity: 0.8 });
+            // Make Exercise (Spin Yoga) module 90% transparent
+            let material;
+            if (mod.name === 'Exercise (Spin Yoga)') {
+              material = new THREE.MeshLambertMaterial({ color, transparent: true, opacity: 0.4 });
+            } else {
+              material = new THREE.MeshLambertMaterial({ color, transparent: true, opacity: 0.8 });
+            }
             const pieSegment = new THREE.Mesh(geometry, material);
             pieSegment.type = 'PieSegment';
             pieSegment.moduleData = { ...mod };
             pieSegment.userData = { startAngle, endAngle, innerRadius, outerRadius };
             floors[currentFloor].shapes.push(pieSegment);
             scene.add(pieSegment);
+            // If Exercise (Spin Yoga), add astronaut and pole
+            if (mod.name === 'Exercise (Spin Yoga)') {
+              // Compute center angle and radius for wedge
+              const start = pieSegment.userData.startAngle;
+              const end = pieSegment.userData.endAngle;
+              const centerAngle = (start + end) / 2 + 3;
+			  console.log("angles:",start, end, centerAngle);
+              const outerRadius = pieSegment.userData.outerRadius;
+              const innerRadius = pieSegment.userData.innerRadius;
+              // Place at 85% of the way from inner to outer radius
+              const r = innerRadius + 0.85 * (outerRadius - innerRadius);
+              // Correct direction: add to pieSegment.position, not offset from origin
+              const x = r * Math.sin(centerAngle);
+              const z = r * Math.cos(centerAngle);
+			  console.log("pos:",x,z);
+              // Create group for astronaut and pole
+              const group = new THREE.Group();
+              // Pole (skinny cylinder)
+              const poleHeight = pieSegment.moduleData.packedsize?.height || 1;
+              const poleGeometry = new THREE.CylinderGeometry(0.05, 0.05, poleHeight, 12);
+              const poleMaterial = new THREE.MeshLambertMaterial({ color: 0x888888 });
+              const pole = new THREE.Mesh(poleGeometry, poleMaterial);
+              pole.position.set(0, poleHeight/2, 0);
+              group.add(pole);
+              // Astronaut (blue capsule + arms/legs)
+              const astroGroup = new THREE.Group();
+              const torsoGeometry = new THREE.CapsuleGeometry(0.13, 0.28, 8, 16);
+              const torsoMaterial = new THREE.MeshLambertMaterial({ color: 0x2266cc });
+              const torso = new THREE.Mesh(torsoGeometry, torsoMaterial);
+              torso.position.set(0., 0.32, 0);
+              astroGroup.add(torso);
+              // Arms
+              const armGeometry = new THREE.CylinderGeometry(0.04, 0.04, 0.22, 8);
+              const armMaterial = new THREE.MeshLambertMaterial({ color: 0x2266cc });
+              const leftArm = new THREE.Mesh(armGeometry, armMaterial);
+              leftArm.position.set(-0.13, 0.52, 0);
+              leftArm.rotation.z = Math.PI / 4;
+              astroGroup.add(leftArm);
+              const rightArm = new THREE.Mesh(armGeometry, armMaterial);
+              rightArm.position.set(0.13, 0.32, 0);
+              rightArm.rotation.z = Math.PI / 4;
+              astroGroup.add(rightArm);
+              // Legs
+              const legGeometry = new THREE.CylinderGeometry(0.05, 0.05, 0.28, 8);
+              const legMaterial = new THREE.MeshLambertMaterial({ color: 0x2266cc });
+              const leftLeg = new THREE.Mesh(legGeometry, legMaterial);
+              leftLeg.position.set(-0.05, 0.12, 0);
+              leftLeg.rotation.z = Math.PI / 32;
+              astroGroup.add(leftLeg);
+              const rightLeg = new THREE.Mesh(legGeometry, legMaterial);
+              rightLeg.position.set(0.05, 0.12, 0);
+              rightLeg.rotation.z = -Math.PI / 32;
+              astroGroup.add(rightLeg);
+              // Position astronaut at radius from pole
+              // Move astronaut further from pole and higher above the floor
+              astroGroup.position.set(0.575, 0.32, 0);
+              // Rotate astronaut 45 degrees in z plane
+              astroGroup.rotation.x = 0;
+              astroGroup.rotation.y = 0;
+              astroGroup.rotation.z = Math.PI / 4;
+              group.add(astroGroup);
+              // Place group at computed wedge position
+              group.position.copy(pieSegment.position);
+              group.position.x += x;
+              group.position.z += z;
+              group.position.y += 0.01; // Slightly above base
+              // Attach group to pieSegment for visibility
+              pieSegment.add(group);
+              // Track for animation
+              if (!window.spinYogaAstronauts) window.spinYogaAstronauts = [];
+              window.spinYogaAstronauts.push({ group, pieSegment });
+            }
           } else {
             alert('Could not place new module without collision.');
           }
@@ -1065,6 +1143,37 @@ for (let i = 0; i < NUM_FLOORS; i++) {
 
 // Render loop
 function animate() {
+  // Animate and update position for spin yoga astronaut if present
+  if (window.spinYogaAstronauts) {
+    for (const entry of window.spinYogaAstronauts) {
+      // Animate spin
+      entry.group.rotation.y += 0.07;
+      // Update position to follow pieSegment
+      const pieSegment = entry.pieSegment;
+      const group = entry.group;
+  // Compute wedge position again
+  const start = pieSegment.userData.startAngle;
+  const end = pieSegment.userData.endAngle;
+  const centerAngle = (start + end) / 2+1.5;
+  const outerRadius = pieSegment.userData.outerRadius;
+  const innerRadius = pieSegment.userData.innerRadius;
+  const r = innerRadius + 0.85 * (outerRadius - innerRadius)-0.4;
+  // Correct direction: add to pieSegment.position, not offset from origin
+  const x = r * Math.sin(centerAngle);
+  const z = r * Math.cos(centerAngle);
+  group.position.copy(pieSegment.position);
+  group.position.x += x;
+  group.position.z += z;
+  group.position.y = pieSegment.position.y + 0.01;
+  // Rotate astronaut 45 degrees in z plane
+  if (group.children.length > 1) {
+    const astroGroup = group.children[1];
+    astroGroup.rotation.x = 0;
+    astroGroup.rotation.y = 0;
+    astroGroup.rotation.z = Math.PI / 4;
+  }
+    }
+  }
   requestAnimationFrame(animate);
   renderer.render(scene, camera);
 }
