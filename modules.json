@@ -26,7 +26,7 @@
   "dirty": 0.7,
   "clean": 0.1,
     "packedsize": { "width": 3.38, "height": 1.015, "depth": 1.35 },
-    "color": "#b7e23a",
+    "color": "#3ab7e2",
 		"adjacency": [{"name":"Hygiene (Cleansing)", "criteria":"max", "threshold":0.4}]
 
   },
@@ -35,7 +35,7 @@
   "dirty": 0.7,
   "clean": 0.1,
     "packedsize": { "width": 4.12, "height": 1.84, "depth": 2.45 },
-    "color": "#e23ab7",
+    "color": "#3ab7e2",
 	"adjacency": [{"name":"Hygiene (Cleansing)", "criteria":"max", "threshold":0.4}]
   },
   {
@@ -51,7 +51,7 @@
   "dirty": 0.6,
   "clean": 0.0,
     "packedsize": { "width": 4.35, "height": 1.305, "depth": 1.74 },
-    "color": "#e23a3a"
+    "color": "#ff7723"
   },
 {
   "name": "Meal Preparation (Food Prep)",
@@ -65,28 +65,35 @@
   "dirty": 0.5,
   "clean": 0.5,
     "packedsize": { "width": 3.3, "height": 0.99, "depth": 1.32 },
-    "color": "#e25a3a"
+    "color": "#5a7ae2"
   },
   {
   "name": "Medical (Computer)",
   "dirty": 0.0,
   "clean": 0.2,
-    "packedsize": { "width": 1.2, "height": 0.36, "depth": 0.96 },
-    "color": "#3ae27a"
+    "packedsize": { "width": 1.2, "height": 0.96, "depth": 0.96 },
+    "color": "#e23a7a"
   },
   {
   "name": "Medical (Medical Care)",
   "dirty": 0.6,
   "clean": 1.0,
     "packedsize": { "width": 4.8, "height": 1.74, "depth": 2.12 },
-    "color": "#9a5ae2"
+    "color": "#e23a7a"
+  },
+{
+  "name": "Storage",
+  "dirty": 0.0,
+  "clean": 0.0,
+    "packedsize": { "width": 0.6, "height": 1.2, "depth": 1.8 },
+    "color": "#909090"
   },
   {
   "name": "Group Social-1 (Open Area) / Mission Planning-3 (Training)",
   "dirty": 0.0,
   "clean": 0.4,
     "packedsize": { "width": 9.1, "height": 2.0, "depth": 2.75 },
-    "color": "#e2b73a"
+    "color": "#3ae2b7"
   },
   {
   "name": "Group Social-2 (Table) / Meal Consumption (Table) / Mission Planning-2 (Table)",
@@ -100,14 +107,14 @@
   "dirty": 0.0,
   "clean": 0.0,
     "packedsize": { "width": 6.0, "height": 1.8, "depth": 2.4 },
-    "color": "#3ae23a"
+    "color": "#909090"
   },
   {
   "name": "Maintenance-1 (Computer) / EVA-2 (EVA Computer/Data)",
   "dirty": 0.0,
   "clean": 0.0,
     "packedsize": { "width": 3.4, "height": 1.02, "depth": 1.36 },
-    "color": "#e23a7a"
+    "color": "#7ae23a"
   },
   {
   "name": "Maintenance-2 (Work Surface) / Logistics-1 (Work Surface) / EVA-1 (Suit Testing)",
@@ -128,7 +135,7 @@
   "dirty": 0.0,
   "clean": 0.4,
     "packedsize": { "width": 8.7, "height": 2.0, "depth": 2.75 },
-    "color": "#5a5af2"
+    "color": "#7a7af2"
   },
   {
   "name": "Private Habitation-2 (Sleep & Relaxation) / Hygiene-2 (Non-Cleansing)",

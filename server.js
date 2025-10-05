@@ -23,10 +23,10 @@ app.get('/api/layouts', (req, res) => {
 });
 
 app.post('/api/layouts/save', (req, res) => {
-	const { name, positions } = req.body;
-	if (!name || !Array.isArray(positions)) return res.status(400).send('Invalid');
+	const { name, floors } = req.body;
+	if (!name || !Array.isArray(floors)) return res.status(400).send('Invalid');
 	const layouts = readLayouts();
-	layouts[name] = positions;
+	layouts[name] = { floors };
 	writeLayouts(layouts);
 	res.json({ success: true });
 });

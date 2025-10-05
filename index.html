@@ -73,10 +73,13 @@
   <button id="restoreBtn">Restore Positions</button>
   <div id="layoutSelect" style="display:none; flex-direction:column; gap:6px;"></div>
   <div id="infoPanel" style="margin-top:24px; padding:12px; background:#f7f7f7; border-radius:8px; border:1px solid #ddd; font-size:1rem;">
-  <div id="wcsStatus">WCS module: <span id="wcsVal">NO</span></div>
-  <div id="berthStatus">berth module: <span id="berthVal">NO</span></div>
-  <div id="sepStatus" style="margin-top:8px;">WCS / berth separation: <span id="sepVal">-</span></div>
-  <div id="camAngles" style="margin-top:16px; font-size:0.95rem; color:#555;">Camera angles: <span id="camTheta">-</span>°, <span id="camPhi">-</span>°</div>
+    <div id="wcsStatus">WCS module: <span id="wcsVal">NO</span></div>
+    <div id="berthStatus">berth module: <span id="berthVal">NO</span></div>
+    <div id="sepStatus" style="margin-top:8px;">WCS / berth separation: <span id="sepVal">-</span></div>
+    <div id="camAngles" style="margin-top:16px; font-size:0.95rem; color:#555;">Camera angles: <span id="camTheta">-</span>°, <span id="camPhi">-</span>°</div>
+  </div>
+  <div style="width:100%; text-align:center; margin-top:18px;">
+    <a href="https://github.com/jon-adair/polygonal-pods" target="_blank" style="font-size:1.15rem; color:#2266cc; text-decoration:none; font-weight:bold;">github</a>
   </div>
 </div>
 <div id="moduleTooltip" style="position:fixed; left:0; top:0; pointer-events:none; background:#fffbe7; color:#333; border:1px solid #ccc; border-radius:6px; padding:4px 10px; font-size:1rem; box-shadow:0 2px 8px rgba(0,0,0,0.08); display:none; z-index:1000"></div>
@@ -681,15 +684,58 @@ document.getElementById('newLayoutBtn').onclick = () => {
   currentLayoutName = name;
   // Remove all shapes from scene for all floors
   for (let i = 0; i < NUM_FLOORS; i++) {
+    // Remove all shapes except floorMesh
     for (let j = floors[i].shapes.length - 1; j >= 0; j--) {
-      const removed = floors[i].shapes[j];
-      if (removed.parent) removed.parent.remove(removed);
-      floors[i].shapes.splice(j, 1);
+      const shape = floors[i].shapes[j];
+      if (shape !== floors[i].floorMesh) {
+        if (shape.parent) shape.parent.remove(shape);
+        floors[i].shapes.splice(j, 1);
+      }
     }
-    // Re-add center cylinder and human figure
-    scene.add(floors[i].floorMesh);
+    // Re-add center cylinder
+    const centerCylinderGeometry = new THREE.CylinderGeometry(0.6, 0.6, 3, 32);
+    const centerCylinderMaterial = new THREE.MeshLambertMaterial({ color: 0x888888, transparent: true, opacity: 0.5 });
+    const centerCylinder = new THREE.Mesh(centerCylinderGeometry, centerCylinderMaterial);
+    centerCylinder.position.set(0, 0.5, 0);
+    centerCylinder.type = 'CenterCylinder';
+    centerCylinder.visible = (i === currentFloor);
+    scene.add(centerCylinder);
+    floors[i].shapes.push(centerCylinder);
+    // Re-add astronaut figure
+    const humanGroup = new THREE.Group();
+    // Torso (blue capsule)
+    const torsoGeometry = new THREE.CapsuleGeometry(0.18, 0.38, 8, 16);
+    const torsoMaterial = new THREE.MeshLambertMaterial({ color: 0x2266cc });
+    const torso = new THREE.Mesh(torsoGeometry, torsoMaterial);
+    torso.position.set(0, 0.5, 0);
+    humanGroup.add(torso);
+    // Arms (blue cylinders)
+    const armGeometry = new THREE.CylinderGeometry(0.06, 0.06, 0.32, 8);
+    const armMaterial = new THREE.MeshLambertMaterial({ color: 0x2266cc });
+    const leftArm = new THREE.Mesh(armGeometry, armMaterial);
+    leftArm.position.set(-0.25, 0.45, 0);
+    leftArm.rotation.z = Math.PI / 1;
+    humanGroup.add(leftArm);
+    const rightArm = new THREE.Mesh(armGeometry, armMaterial);
+    rightArm.position.set(0.25, 0.45, 0);
+    rightArm.rotation.z = -Math.PI / 1;
+    humanGroup.add(rightArm);
+    // Legs (blue cylinders)
+    const legGeometry = new THREE.CylinderGeometry(0.07, 0.07, 0.38, 8);
+    const legMaterial = new THREE.MeshLambertMaterial({ color: 0x2266cc });
+    const leftLeg = new THREE.Mesh(legGeometry, legMaterial);
+    leftLeg.position.set(-0.09, 0.12, 0);
+    leftLeg.rotation.z = Math.PI / 32;
+    humanGroup.add(leftLeg);
+    const rightLeg = new THREE.Mesh(legGeometry, legMaterial);
+    rightLeg.position.set(0.09, 0.12, 0);
+    rightLeg.rotation.z = -Math.PI / 32;
+    humanGroup.add(rightLeg);
+    humanGroup.visible = (i === currentFloor);
+    scene.add(humanGroup);
+    floors[i].shapes.push(humanGroup);
+    // Floor mesh already in scene
     floors[i].floorMesh.visible = (i === currentFloor);
-    // Center cylinder and human figure already in scene
   }
 };
 
@@ -700,7 +746,11 @@ document.getElementById('saveBtn').onclick = () => {
   }
   // Save all floors
   const allFloors = floors.map(floor => floor.shapes.map(shape => {
-    const entry = shape.moduleData || {};
+    let entry = shape.moduleData ? { ...shape.moduleData } : {};
+    if (shape.type === 'PieSegment' && shape.userData) {
+      entry.startAngle = shape.userData.startAngle;
+      entry.endAngle = shape.userData.endAngle;
+    }
     return {
       ...entry,
       x: shape.position.x,
@@ -772,10 +822,10 @@ document.getElementById('restoreBtn').onclick = () => {
           currentLayoutName = name;
           const layoutFloors = layouts[name].floors;
           for (let i = 0; i < NUM_FLOORS; i++) {
-            // Remove all shapes except floorMesh, centerCylinder, humanGroup
+            // Remove only user modules (PieSegment, cubes, etc), keep centerCylinder and astronaut figure
             for (let j = floors[i].shapes.length - 1; j >= 0; j--) {
               const shape = floors[i].shapes[j];
-              if (shape.type !== 'CenterCylinder' && shape.type !== undefined) {
+              if (shape.type === 'PieSegment' || shape.type === 'Mesh') {
                 if (shape.parent) shape.parent.remove(shape);
                 floors[i].shapes.splice(j, 1);
               }
@@ -806,8 +856,6 @@ document.getElementById('restoreBtn').onclick = () => {
                 pieSegment.position.set(mod.x, mod.y, mod.z);
                 floors[i].shapes.push(pieSegment);
                 scene.add(pieSegment);
-              } else if (mod.type === null || mod.type === undefined) {
-                // Ignore floorMesh, centerCylinder, humanGroup
               }
             });
           }
@@ -865,29 +913,41 @@ document.getElementById('addModuleBtn').onclick = function() {
           const totalCircumference = 2 * Math.PI * ((innerRadius + floorRadius) / 2);
           const angularWidth = Math.max(0.2, sliceWidth / totalCircumference * 2 * Math.PI);
           // Find next available angle (avoid overlap)
-          let startAngle = 0;
-          let maxTries = 50;
           let placed = false;
-          let attempts = 0;
-          while (!placed && attempts < maxTries) {
-            startAngle = Math.random() * 2 * Math.PI;
+          let startAngle = 0;
+          for (let deg = 0; deg < 360; deg += 1) {
+            startAngle = deg * Math.PI / 180;
             let collision = false;
             for (let i = 0; i < floors[currentFloor].shapes.length; i++) {
               const other = floors[currentFloor].shapes[i];
               if (other.type === 'PieSegment') {
                 const a0 = other.userData.startAngle;
                 const a1 = other.userData.endAngle;
-                const overlap =
-                  (startAngle < a1 && (startAngle + angularWidth) > a0) ||
-                  (a0 < (startAngle + angularWidth) && a1 > startAngle);
-                if (overlap) {
+                // Improved overlap check for circular intervals
+                function intervalsOverlap(s1, e1, s2, e2) {
+                  s1 = ((s1 % (2*Math.PI)) + 2*Math.PI) % (2*Math.PI);
+                  e1 = ((e1 % (2*Math.PI)) + 2*Math.PI) % (2*Math.PI);
+                  s2 = ((s2 % (2*Math.PI)) + 2*Math.PI) % (2*Math.PI);
+                  e2 = ((e2 % (2*Math.PI)) + 2*Math.PI) % (2*Math.PI);
+                  const EPS = 1e-6;
+                  function intervalContains(s, e, x) {
+                    if (s < e) return x > s + EPS && x < e - EPS;
+                    return x > s + EPS || x < e - EPS;
+                  }
+                  return intervalContains(s1, e1, s2) || intervalContains(s1, e1, e2) ||
+                         intervalContains(s2, e2, s1) || intervalContains(s2, e2, e1);
+                }
+                const newEnd = startAngle + angularWidth;
+                if (intervalsOverlap(startAngle, newEnd, a0, a1)) {
                   collision = true;
                   break;
                 }
               }
             }
-            if (!collision) placed = true;
-            attempts++;
+            if (!collision) {
+              placed = true;
+              break;
+            }
           }
           if (placed) {
             const endAngle = startAngle + angularWidth;
