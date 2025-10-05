@@ -3,23 +3,15 @@
   "name": "Waste Collection",
   "dirty": 1.0,
   "clean": 0.0,
-    "packedsize": {
-      "width": 1,
-      "height": 1,
-      "depth": 2
-    },
+    "packedsize": {"width": 1,"height": 1,"depth": 2},
     "color": "#ff7723"
   },
   {
   "name": "Berth",
   "dirty": 0.3,
   "clean": 0.4,
-    "color": "#4488ff",
-    "packedsize": {
-      "width": 1.5,
-      "height": 0.7,
-      "depth": 1.4
-    }
+    "color": "#6498ff",
+    "packedsize": {"width": 1.5,"height": 0.7, "depth": 1.4}
   },
   {
   "name": "Exercise (Cycle Ergometer)",
@@ -58,14 +50,14 @@
   "dirty": 0.3,
   "clean": 0.4,
     "packedsize": { "width": 4.35, "height": 1.305, "depth": 1.74 },
-    "color": "#5a7ae2"
+    "color": "#6a8ae2"
   },
   {
   "name": "Meal Preparation (Work Surface)",
   "dirty": 0.5,
   "clean": 0.5,
     "packedsize": { "width": 3.3, "height": 0.99, "depth": 1.32 },
-    "color": "#5a7ae2"
+    "color": "#6a8ae2"
   },
   {
   "name": "Medical (Computer)",
@@ -86,7 +78,7 @@
   "dirty": 0.0,
   "clean": 0.0,
     "packedsize": { "width": 0.6, "height": 1.2, "depth": 1.8 },
-    "color": "#909090"
+    "color": "#a0a0a0"
   },
   {
   "name": "Group Social-1 (Open Area) / Mission Planning-3 (Training)",
@@ -107,7 +99,7 @@
   "dirty": 0.0,
   "clean": 0.0,
     "packedsize": { "width": 6.0, "height": 1.8, "depth": 2.4 },
-    "color": "#909090"
+    "color": "#a0a0a0"
   },
   {
   "name": "Maintenance-1 (Computer) / EVA-2 (EVA Computer/Data)",
