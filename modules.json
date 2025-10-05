@@ -1,6 +1,6 @@
 [
   {
-  "name": "WCS",
+  "name": "Waste Collection",
   "dirty": 1.0,
   "clean": 0.0,
     "packedsize": {
@@ -11,7 +11,7 @@
     "color": "#ff7723"
   },
   {
-  "name": "berth",
+  "name": "Berth",
   "dirty": 0.3,
   "clean": 0.4,
     "color": "#4488ff",
@@ -22,30 +22,64 @@
     }
   },
   {
-  "name": "Exercise-1 (Cycle Ergometer)",
+  "name": "Exercise (Cycle Ergometer)",
   "dirty": 0.7,
   "clean": 0.1,
     "packedsize": { "width": 3.38, "height": 1.015, "depth": 1.35 },
     "color": "#b7e23a",
-		"adjacency": [{"name":"Hygiene-1 (Cleansing)", "criteria":"max", "threshold":0.4}]
+		"adjacency": [{"name":"Hygiene (Cleansing)", "criteria":"max", "threshold":0.4}]
 
   },
   {
-  "name": "Exercise-2 (Treadmill)",
+  "name": "Exercise (Treadmill)",
   "dirty": 0.7,
   "clean": 0.1,
-    "packedsize": { "width": 6.12, "height": 1.84, "depth": 2.45 },
+    "packedsize": { "width": 4.12, "height": 1.84, "depth": 2.45 },
     "color": "#e23ab7",
-	"adjacency": [{"name":"Hygiene-1 (Cleansing)", "criteria":"max", "threshold":0.4}]
+	"adjacency": [{"name":"Hygiene (Cleansing)", "criteria":"max", "threshold":0.4}]
   },
   {
-  "name": "Exercise-3 (Resistive Device)",
+  "name": "Exercise (Resistive Device)",
   "dirty": 0.5,
   "clean": 0.1,
     "packedsize": { "width": 3.92, "height": 1.18, "depth": 1.57 },
     "color": "#3ab7e2",
-		"adjacency": [{"name":"Hygiene-1 (Cleansing)", "criteria":"max", "threshold":0.4}]
-
+		"adjacency": [{"name":"Hygiene (Cleansing)", "criteria":"max", "threshold":0.4}]
+  },
+  {
+  "name": "Hygiene (Cleansing)",
+  "dirty": 0.6,
+  "clean": 0.0,
+    "packedsize": { "width": 4.35, "height": 1.305, "depth": 1.74 },
+    "color": "#e23a3a"
+  },
+{
+  "name": "Meal Preparation (Food Prep)",
+  "dirty": 0.3,
+  "clean": 0.4,
+    "packedsize": { "width": 4.35, "height": 1.305, "depth": 1.74 },
+    "color": "#5a7ae2"
+  },
+  {
+  "name": "Meal Preparation (Work Surface)",
+  "dirty": 0.5,
+  "clean": 0.5,
+    "packedsize": { "width": 3.3, "height": 0.99, "depth": 1.32 },
+    "color": "#e25a3a"
+  },
+  {
+  "name": "Medical (Computer)",
+  "dirty": 0.0,
+  "clean": 0.2,
+    "packedsize": { "width": 1.2, "height": 0.36, "depth": 0.96 },
+    "color": "#3ae27a"
+  },
+  {
+  "name": "Medical (Medical Care)",
+  "dirty": 0.6,
+  "clean": 1.0,
+    "packedsize": { "width": 4.8, "height": 1.74, "depth": 2.12 },
+    "color": "#9a5ae2"
   },
   {
   "name": "Group Social-1 (Open Area) / Mission Planning-3 (Training)",
@@ -60,20 +94,6 @@
   "clean": 0.4,
     "packedsize": { "width": 5.045, "height": 2.0, "depth": 2.0 },
     "color": "#3ae2b7"
-  },
-  {
-  "name": "Human Waste-1 (Waste Collection)",
-  "dirty": 0.9,
-  "clean": 0.0,
-    "packedsize": { "width": 2.36, "height": 0.71, "depth": 1.88 },
-    "color": "#b73ae2"
-  },
-  {
-  "name": "Hygiene-1 (Cleansing)",
-  "dirty": 0.6,
-  "clean": 0.0,
-    "packedsize": { "width": 4.35, "height": 1.305, "depth": 1.74 },
-    "color": "#e23a3a"
   },
   {
   "name": "Logistics-2 (Temporary Stowage)",
@@ -97,34 +117,6 @@
     "color": "#7ae23a"
   },
   {
-  "name": "Meal Preparation-1 (Food Prep)",
-  "dirty": 0.3,
-  "clean": 0.4,
-    "packedsize": { "width": 4.35, "height": 1.305, "depth": 1.74 },
-    "color": "#3a7ae2"
-  },
-  {
-  "name": "Meal Preparation-2 (Work Surface)",
-  "dirty": 0.5,
-  "clean": 0.5,
-    "packedsize": { "width": 3.3, "height": 0.99, "depth": 1.32 },
-    "color": "#e27a3a"
-  },
-  {
-  "name": "Medical-1 (Computer)",
-  "dirty": 0.0,
-  "clean": 0.2,
-    "packedsize": { "width": 1.2, "height": 0.36, "depth": 0.96 },
-    "color": "#3ae27a"
-  },
-  {
-  "name": "Medical-3 (Medical Care)",
-  "dirty": 0.6,
-  "clean": 1.0,
-    "packedsize": { "width": 5.8, "height": 1.74, "depth": 2.32 },
-    "color": "#7a3ae2"
-  },
-  {
   "name": "Mission Planning-2 (Computer/Command) / Spacecraft Monitoring",
   "dirty": 0.0,
   "clean": 0.0,
@@ -136,7 +128,7 @@
   "dirty": 0.0,
   "clean": 0.4,
     "packedsize": { "width": 8.7, "height": 2.0, "depth": 2.75 },
-    "color": "#3a3ae2"
+    "color": "#5a5af2"
   },
   {
   "name": "Private Habitation-2 (Sleep & Relaxation) / Hygiene-2 (Non-Cleansing)",
@@ -148,7 +140,7 @@
   {
   "name": "Waste Management",
   "dirty": 1.0,
-  "clean": 1.0,
+  "clean": 0.0,
     "packedsize": { "width": 3.76, "height": 1.13, "depth": 3.0 },
     "color": "#3ae2e2"
   },
