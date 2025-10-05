@@ -4,7 +4,9 @@
 <meta charset="UTF-8">
 <title>Isometric Room with Draggable Shapes - Three.js</title>
 <style>
-  body { margin: 0; }
+  body { margin: 0; 
+  font-family: 'Segoe UI', 'Roboto', 'Arial', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  }
   #threejs-canvas {
     position: absolute;
     left: 280px;
@@ -54,6 +56,11 @@
 </head>
 <body>
 <div id="controls">
+  <div style="width:100%; text-align:center; margin-bottom:18px;">
+    <a href="https://www.spaceappschallenge.org/2025/find-a-team/polygonal-pods/" target="_blank" style="font-size:1.125rem; font-weight:bold; text-decoration:none; color:#2266cc; font-family:inherit;">
+      <span style="font-size:1.5rem; font-weight:bold; font-family:inherit;">Polygonal Pods</span>
+    </a>
+  </div>
   <div id="moduleModal" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.35); z-index:10000; justify-content:center; align-items:center;">
     <div style="background:#fff; border-radius:16px; box-shadow:0 4px 32px rgba(0,0,0,0.18); padding:32px 32px 24px 32px; min-width:340px; max-width:90vw; max-height:80vh; overflow-y:auto; display:flex; flex-direction:column; gap:12px; align-items:stretch;">
       <div style="font-size:1.3rem; font-weight:bold; margin-bottom:12px; text-align:center;">Select a Module</div>
@@ -72,14 +79,11 @@
   <button id="saveBtn">Save Positions</button>
   <button id="restoreBtn">Restore Positions</button>
   <div id="layoutSelect" style="display:none; flex-direction:column; gap:6px;"></div>
-  <div id="infoPanel" style="margin-top:24px; padding:12px; background:#f7f7f7; border-radius:8px; border:1px solid #ddd; font-size:1rem;">
-    <div id="wcsStatus">WCS module: <span id="wcsVal">NO</span></div>
-    <div id="berthStatus">berth module: <span id="berthVal">NO</span></div>
-    <div id="sepStatus" style="margin-top:8px;">WCS / berth separation: <span id="sepVal">-</span></div>
-    <div id="camAngles" style="margin-top:16px; font-size:0.95rem; color:#555;">Camera angles: <span id="camTheta">-</span>°, <span id="camPhi">-</span>°</div>
+  <div id="infoPanel" style="margin-top:24px; padding:12px; background:#f7f7f7; border-radius:8px; border:1px solid #ddd; font-size:1rem; font-family:inherit;">
+  <!-- Info panel content removed: WCS module, berth module, separation, camera angles -->
   </div>
   <div style="width:100%; text-align:center; margin-top:18px;">
-    <a href="https://github.com/jon-adair/polygonal-pods" target="_blank" style="font-size:1.15rem; color:#2266cc; text-decoration:none; font-weight:bold;">github</a>
+  <a href="https://github.com/jon-adair/polygonal-pods" target="_blank" style="font-size:1.15rem; color:#2266cc; text-decoration:none; font-weight:bold; font-family:inherit;">github</a>
   </div>
 </div>
 <div id="moduleTooltip" style="position:fixed; left:0; top:0; pointer-events:none; background:#fffbe7; color:#333; border:1px solid #ccc; border-radius:6px; padding:4px 10px; font-size:1rem; box-shadow:0 2px 8px rgba(0,0,0,0.08); display:none; z-index:1000"></div>
@@ -127,7 +131,7 @@ function updateInfoPanel() {
     if (ps && typeof ps.width === 'number' && typeof ps.height === 'number' && typeof ps.depth === 'number') {
       vol = (ps.width * ps.height * ps.depth).toFixed(2);
     }
-    moduleListHtml += `${mod.name} <span style='color:#888'>${vol} m^3</span><br>`;
+    moduleListHtml += `${mod.name} <span style='color:#888'>${vol} m&sup3;</span><br>`;
     if (mod.name === 'WCS') wcs = shape;
     if (mod.name === 'berth') berth = shape;
   }
@@ -162,8 +166,8 @@ function updateInfoPanel() {
       const posB = getModuleCenter(modulesOnFloor[j]);
       const dist = posA.distanceTo(posB);
        console.log(`Checking ${modA.name} (clean ${cleanA}) vs ${(dirtyB / dist)} ${modB.name} (dirty ${dirtyB}), dist ${dist}`);
-      if (dist > 0 && cleanA < (dirtyB / dist)) {
-        warningHtml += `<div style='color:#c00;font-weight:bold;'>Warning: <span style='color:#c00;'>${modA.name}</span> & <span style='color:#c00;'>${modB.name}</span></div>`;
+      if (dist > 0 && cleanA < (2*dirtyB / dist)) {
+        warningHtml += `<div style='color:#c00;font-weight:bold;'>Warning: <span style='color:#c00;'>${modA.name} contaminated by ${modB.name}</span></div>`;
       }
     }
   }
@@ -287,8 +291,10 @@ renderer.domElement.addEventListener('mousemove', (event) => {
   const hoveredShape = floors[currentFloor].shapes.find(obj => obj === intersects[0].object || (obj.type === 'Group' && obj.children.includes(intersects[0].object)));
     if (hoveredShape && hoveredShape.moduleData && hoveredShape.moduleData.name) {
       let dirty = hoveredShape.moduleData.dirty;
-      let dirtyText = (typeof dirty !== 'undefined') ? `\n(Dirty: ${dirty})` : '';
-      tooltip.textContent = hoveredShape.moduleData.name + dirtyText;
+      let dirtyText = (typeof dirty !== 'undefined') ? `[Dirty: ${dirty}` : '';
+      let clean = hoveredShape.moduleData.clean;
+      let cleanText = (typeof clean !== 'undefined') ? ` Clean: ${clean}]` : '';
+      tooltip.textContent = hoveredShape.moduleData.name + dirtyText + cleanText;
       tooltip.style.display = 'block';
       tooltip.style.left = (event.clientX + 10) + 'px';
       tooltip.style.top = (event.clientY + 18) + 'px';
@@ -572,8 +578,8 @@ renderer.domElement.addEventListener('pointermove', (event) => {
       const my = -((event.clientY - rect.top) / rect.height) * 2 + 1;
       // Project mouse to world coordinates
       const vector = new THREE.Vector3(mx, my, 0.5).unproject(camera);
-  const dragAngle = Math.atan2(vector.z, vector.x);
-  const deltaAngle = (dragAngle - selectedShape.userData.dragStartAngle) * 10;
+      const dragAngle = Math.atan2(vector.z, vector.x);
+      const deltaAngle = (dragAngle - selectedShape.userData.dragStartAngle) * 20; // 2x speed
       // Update start/end angles
       let newStart = selectedShape.userData.dragOrigStartAngle + deltaAngle;
       let newEnd = selectedShape.userData.dragOrigEndAngle + deltaAngle;
@@ -894,7 +900,9 @@ document.getElementById('addModuleBtn').onclick = function() {
       }
       modules.forEach(function(mod) {
         const btn = document.createElement('button');
-        btn.textContent = mod.name;
+        const dirty = typeof mod.dirty === 'number' ? mod.dirty : (mod.dirty !== undefined ? mod.dirty : 0.0);
+        const clean = typeof mod.clean === 'number' ? mod.clean : (mod.clean !== undefined ? mod.clean : 0.0);
+        btn.textContent = `${mod.name} [Dirty:${dirty} Clean:${clean}]`;
         btn.style.background = mod.color || '#eee';
         btn.style.fontSize = '1.1rem';
         btn.style.padding = '12px 0';
@@ -904,7 +912,7 @@ document.getElementById('addModuleBtn').onclick = function() {
         btn.onclick = function() {
           console.log('Selected module:', mod);
           modal.style.display = 'none';
-          // Use packedsize width for pie slice angular width
+          // ...existing code for placing module...
           const color = mod.color || '#888888';
           const wedgeDepth = (mod.packedsize && mod.packedsize.depth) ? mod.packedsize.depth : 1;
           const outerRadius = floorRadius;
