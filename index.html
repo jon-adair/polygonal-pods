@@ -741,8 +741,9 @@ document.getElementById('newLayoutBtn').onclick = () => {
 
 document.getElementById('saveBtn').onclick = () => {
   if (!currentLayoutName) {
-    alert('Please create or select a layout first.');
-    return;
+    const name = prompt('Enter a name for the layout:');
+    if (!name) return;
+    currentLayoutName = name;
   }
   // Save all floors
   const allFloors = floors.map(floor => floor.shapes.map(shape => {
